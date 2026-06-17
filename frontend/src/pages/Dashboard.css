@@ -1,0 +1,41 @@
+.dashboard-page { padding-bottom: 4rem; }
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 2rem;
+  padding: 2rem 0;
+}
+
+.dashboard-sidebar { padding: 1.5rem; height: fit-content; }
+.dashboard-sidebar h3 { color: var(--purple); margin-bottom: 1rem; }
+
+.dash-tab {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  transition: all 0.3s;
+  margin-bottom: 0.25rem;
+}
+
+.dash-tab.active, .dash-tab:hover {
+  background: var(--purple);
+  color: var(--gold);
+}
+
+.dashboard-main h2 { color: var(--purple); margin-bottom: 1.5rem; }
+
+.order-card, .address-card { padding: 1.25rem; margin-bottom: 1rem; }
+.order-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.address-form { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--gray-200); }
+.empty-text { color: var(--gray-500); }
+
+@media (max-width: 768px) {
+  .dashboard-layout { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,120 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      const refresh = localStorage.getItem('refresh_token');
+      if (refresh) {
+        try {
+          const { data } = await axios.post(`${API_URL}/auth/token/refresh/`, { refresh });
+          localStorage.setItem('access_token', data.access);
+          original.headers.Authorization = `Bearer ${data.access}`;
+          return api(original);
+        } catch {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const authAPI = {
+  register: (data) => api.post('/auth/register/', data),
+  login: (data) => api.post('/auth/login/', data),
+  logout: (refresh) => api.post('/auth/logout/', { refresh }),
+  profile: () => api.get('/auth/profile/'),
+  updateProfile: (data) => api.patch('/auth/profile/', data),
+  updateProfileDetails: (data) => api.patch('/auth/profile/details/', data),
+  forgotPassword: (email) => api.post('/auth/forgot-password/', { email }),
+  resetPassword: (data) => api.post('/auth/reset-password/', data),
+  verifyEmail: (token) => api.post('/auth/verify-email/', { token }),
+  changePassword: (data) => api.post('/auth/change-password/', data),
+  addresses: () => api.get('/auth/addresses/'),
+  createAddress: (data) => api.post('/auth/addresses/', data),
+  updateAddress: (id, data) => api.patch(`/auth/addresses/${id}/`, data),
+  deleteAddress: (id) => api.delete(`/auth/addresses/${id}/`),
+};
+
+export const productAPI = {
+  list: (params) => api.get('/products/', { params }),
+  get: (slug) => api.get(`/products/${slug}/`),
+  related: (slug) => api.get(`/products/${slug}/related/`),
+  categories: () => api.get('/products/categories/'),
+  subcategories: (params) => api.get('/products/subcategories/', { params }),
+  sizes: () => api.get('/products/sizes/'),
+  colors: () => api.get('/products/colors/'),
+  banners: () => api.get('/products/banners/'),
+  reviews: (params) => api.get('/products/reviews/', { params }),
+  createReview: (data) => api.post('/products/reviews/', data),
+  featured: () => api.get('/products/', { params: { is_featured: true } }),
+  newArrivals: () => api.get('/products/', { params: { is_new_arrival: true } }),
+  trending: () => api.get('/products/', { params: { is_trending: true } }),
+  create: (data) => api.post('/products/', data),
+  update: (slug, data) => api.patch(`/products/${slug}/`, data),
+  delete: (slug) => api.delete(`/products/${slug}/`),
+  variants: (params) => api.get('/products/variants/', { params }),
+  inventory: () => api.get('/products/inventory/'),
+  lowStock: () => api.get('/products/inventory/low_stock/'),
+  coupons: () => api.get('/products/coupons/'),
+  createCoupon: (data) => api.post('/products/coupons/', data),
+  validateCoupon: (code) => api.post('/products/coupons/validate/', { code }),
+  approveReview: (id) => api.post(`/products/reviews/${id}/approve/`),
+  deleteReview: (id) => api.delete(`/products/reviews/${id}/`),
+};
+
+export const cartAPI = {
+  get: () => api.get('/cart/'),
+  addItem: (variant_id, quantity = 1) => api.post('/cart/items/', { variant_id, quantity }),
+  updateItem: (itemId, quantity) => api.patch(`/cart/items/${itemId}/`, { quantity }),
+  removeItem: (itemId) => api.delete(`/cart/items/${itemId}/`),
+  clear: () => api.delete('/cart/'),
+  applyCoupon: (code) => api.post('/cart/apply-coupon/', { code }),
+  wishlist: () => api.get('/cart/wishlist/'),
+  addWishlist: (product_id) => api.post('/cart/wishlist/', { product_id }),
+  removeWishlist: (product_id) => api.delete(`/cart/wishlist/${product_id}/`),
+};
+
+export const orderAPI = {
+  checkout: (data) => api.post('/orders/checkout/', data),
+  list: () => api.get('/orders/'),
+  get: (id) => api.get(`/orders/${id}/`),
+  cancel: (id) => api.post(`/orders/${id}/cancel/`),
+  updateStatus: (id, data) => api.patch(`/orders/${id}/update_status/`, data),
+  paymentConfig: () => api.get('/orders/payment/config/'),
+  confirmPayment: (data) => api.post('/orders/payment/confirm/', data),
+};
+
+export const adminAPI = {
+  dashboard: () => api.get('/admin/dashboard/'),
+  logs: () => api.get('/admin/logs/'),
+  users: () => api.get('/auth/admin/users/'),
+  updateUser: (id, data) => api.patch(`/auth/admin/users/${id}/`, data),
+  contacts: () => api.get('/core/admin/contacts/'),
+  updateContact: (id, data) => api.patch(`/core/admin/contacts/${id}/`, data),
+};
+
+export const coreAPI = {
+  contact: (data) => api.post('/core/contact/', data),
+};
+
+export default api;

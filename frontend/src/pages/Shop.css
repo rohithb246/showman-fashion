@@ -1,0 +1,111 @@
+.shop-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2rem;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.shop-filters {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  height: fit-content;
+  position: sticky;
+  top: 88px;
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.filters-header h3 { color: var(--purple); font-size: 1.1rem; }
+
+.filter-group { margin-bottom: 1.5rem; }
+
+.filter-group h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--purple);
+  margin-bottom: 0.75rem;
+  font-family: var(--font-body);
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.filter-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.chip {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 50px;
+  font-size: 0.8rem;
+  background: var(--white);
+  transition: all 0.3s;
+}
+
+.chip.active, .chip:hover {
+  background: var(--purple);
+  color: var(--gold);
+  border-color: var(--purple);
+}
+
+.color-chip::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.price-inputs .form-input { padding: 0.5rem; font-size: 0.85rem; }
+
+.shop-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.sort-select { width: auto; min-width: 180px; }
+
+.filter-toggle { display: none; }
+
+@media (max-width: 900px) {
+  .shop-layout { grid-template-columns: 1fr; }
+  .filter-toggle { display: inline-flex; }
+  .shop-filters {
+    display: none;
+    position: fixed;
+    top: 72px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    border-radius: 0;
+    overflow-y: auto;
+  }
+  .shop-filters.open { display: block; }
+}

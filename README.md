@@ -1,71 +1,177 @@
-# Getting Started with Create React App
+# The Show Man — Luxury Fashion E-Commerce
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A production-ready full-stack e-commerce platform for **The Show Man** luxury fashion brand.
 
-## Available Scripts
+## Tech Stack
 
-In the project directory, you can run:
+| Layer | Technology |
+|-------|------------|
+| Frontend | React (Vite), React Router, Axios, Context API, Framer Motion |
+| Backend | Django 6, Django REST Framework, JWT Auth |
+| Database | PostgreSQL (SQLite for local dev) |
+| Deployment | Gunicorn, Nginx, Docker, Vercel-ready frontend |
 
-### `npm start`
+## Brand Colors
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Primary Gold:** `#FFD700`
+- **Primary Purple:** `#4A0560`
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Project Structure
 
-### `npm test`
+```
+showman-fashion/
+├── backend/          # Django REST API
+├── frontend/         # React Vite SPA
+├── deploy/           # Nginx configuration
+└── docker-compose.yml
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Quick Start (Local Development)
 
-### `npm run build`
+### Prerequisites
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Python 3.12+
+- Node.js 18+
+- PostgreSQL (optional — SQLite works for dev)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Backend
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+cd backend
+python -m venv venv
 
-### `npm run eject`
+# Windows
+.\venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env — set USE_SQLITE=True for quick start without PostgreSQL
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+python manage.py migrate
+python manage.py seed_data
+python manage.py runserver
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+API runs at `http://localhost:8000`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+**Default admin credentials (after seed):**
+- Email: `admin@theshowman.com`
+- Password: `admin123`
 
-## Learn More
+### Frontend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+App runs at `http://localhost:5173`
 
-### Code Splitting
+## API Endpoints
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+| Module | Base URL |
+|--------|----------|
+| Auth | `/api/auth/` |
+| Products | `/api/products/` |
+| Cart | `/api/cart/` |
+| Orders | `/api/orders/` |
+| Core | `/api/core/` |
+| Admin | `/api/admin/` |
 
-### Analyzing the Bundle Size
+### Authentication
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- `POST /api/auth/register/` — Register
+- `POST /api/auth/login/` — Login (returns JWT)
+- `POST /api/auth/logout/` — Logout (blacklist refresh token)
+- `POST /api/auth/token/refresh/` — Refresh access token
+- `POST /api/auth/forgot-password/` — Password reset email
+- `POST /api/auth/reset-password/` — Reset password
+- `POST /api/auth/verify-email/` — Email verification
 
-### Making a Progressive Web App
+## Database Tables
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Users, Profiles, Categories, SubCategories, Products, ProductImages, ProductVariants, Sizes, Colors, Inventory, Cart, CartItems, Wishlist, Orders, OrderItems, Payments, Coupons, Reviews, Addresses, Notifications, ContactMessages, AdminLogs
 
-### Advanced Configuration
+## Features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Customer
+- Home page with hero, collections, testimonials, newsletter
+- Shop with filters (category, size, color, price), search, sorting
+- Product details with image zoom, variants, reviews
+- Cart with coupon codes
+- Wishlist
+- Checkout with COD / Razorpay / Stripe ready
+- User dashboard (orders, profile, addresses)
+- JWT authentication with email verification
 
-### Deployment
+### Admin Panel (`/admin`)
+- Dashboard with analytics
+- Product, order, inventory management
+- User management (block/delete)
+- Coupon & banner management
+- Review approval
+- Contact/support tickets
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Payment Integration
 
-### `npm run build` fails to minify
+Configure in `backend/.env`:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-"# showman-fashion" 
+```env
+RAZORPAY_KEY_ID=your_key
+RAZORPAY_KEY_SECRET=your_secret
+STRIPE_PUBLIC_KEY=pk_...
+STRIPE_SECRET_KEY=sk_...
+```
+
+Payment flow endpoints:
+- `GET /api/orders/payment/config/`
+- `POST /api/orders/payment/confirm/`
+
+## Production Deployment
+
+### Backend (VPS)
+
+```bash
+cd backend
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+gunicorn config.wsgi:application -c gunicorn.conf.py
+```
+
+Use `deploy/nginx.conf` as a reference for reverse proxy setup.
+
+### Frontend (Vercel)
+
+1. Set root directory to `frontend`
+2. Build command: `npm run build`
+3. Output directory: `dist`
+4. Environment variable: `VITE_API_URL=https://your-api-domain.com/api`
+
+### Docker
+
+```bash
+docker-compose up --build
+```
+
+## Security
+
+- JWT authentication with token rotation & blacklisting
+- CORS configuration
+- CSRF protection
+- Rate limiting (100/hr anon, 1000/hr authenticated)
+- Password hashing & validation
+- Secure headers in production mode
+- Role-based access control (customer, staff, admin)
+
+## Environment Variables
+
+See `backend/.env.example` and `frontend/.env.example` for all configuration options.
+
+## License
+
+Proprietary — The Show Man © 2026

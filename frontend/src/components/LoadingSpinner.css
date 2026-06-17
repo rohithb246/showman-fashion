@@ -1,0 +1,10 @@
+.loading-spinner-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+}
+
+.loading-spinner-wrap.full-page {
+  min-height: 60vh;
+}
