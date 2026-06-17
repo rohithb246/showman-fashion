@@ -1,4 +1,4 @@
-# The Show Man — Luxury Fashion E-Commerce
+# The Show Man - Luxury Fashion E-Commerce
 
 A production-ready full-stack e-commerce platform for **The Show Man** luxury fashion brand.
 
@@ -18,7 +18,7 @@ A production-ready full-stack e-commerce platform for **The Show Man** luxury fa
 
 ## Project Structure
 
-```
+```text
 showman-fashion/
 ├── backend/          # Django REST API
 ├── frontend/         # React Vite SPA
@@ -26,13 +26,13 @@ showman-fashion/
 └── docker-compose.yml
 ```
 
-## Quick Start (Local Development)
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.12+
 - Node.js 18+
-- PostgreSQL (optional — SQLite works for dev)
+- PostgreSQL for production, or SQLite for quick local development
 
 ### Backend
 
@@ -42,21 +42,23 @@ python -m venv venv
 
 # Windows
 .\venv\Scripts\activate
+
 # macOS/Linux
 source venv/bin/activate
 
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env — set USE_SQLITE=True for quick start without PostgreSQL
+# Set USE_SQLITE=True for a quick local run without PostgreSQL.
 
 python manage.py migrate
 python manage.py seed_data
 python manage.py runserver
 ```
 
-API runs at `http://localhost:8000`
+API runs at `http://localhost:8000`.
 
-**Default admin credentials (after seed):**
+Default seeded admin credentials:
+
 - Email: `admin@theshowman.com`
 - Password: `admin123`
 
@@ -69,7 +71,7 @@ cp .env.example .env
 npm run dev
 ```
 
-App runs at `http://localhost:5173`
+App runs at `http://localhost:5173`.
 
 ## API Endpoints
 
@@ -84,41 +86,43 @@ App runs at `http://localhost:5173`
 
 ### Authentication
 
-- `POST /api/auth/register/` — Register
-- `POST /api/auth/login/` — Login (returns JWT)
-- `POST /api/auth/logout/` — Logout (blacklist refresh token)
-- `POST /api/auth/token/refresh/` — Refresh access token
-- `POST /api/auth/forgot-password/` — Password reset email
-- `POST /api/auth/reset-password/` — Reset password
-- `POST /api/auth/verify-email/` — Email verification
+- `POST /api/auth/register/` - Register
+- `POST /api/auth/login/` - Login and return JWT tokens
+- `POST /api/auth/logout/` - Logout and blacklist refresh token
+- `POST /api/auth/token/refresh/` - Refresh access token
+- `POST /api/auth/forgot-password/` - Start password reset
+- `POST /api/auth/reset-password/` - Complete password reset
+- `POST /api/auth/verify-email/` - Verify email token
 
 ## Database Tables
 
-Users, Profiles, Categories, SubCategories, Products, ProductImages, ProductVariants, Sizes, Colors, Inventory, Cart, CartItems, Wishlist, Orders, OrderItems, Payments, Coupons, Reviews, Addresses, Notifications, ContactMessages, AdminLogs
+Users, Profiles, Categories, SubCategories, Products, ProductImages, ProductVariants, Sizes, Colors, Inventory, Cart, CartItems, Wishlist, Orders, OrderItems, Payments, Coupons, Reviews, Addresses, Notifications, ContactMessages, AdminLogs.
 
 ## Features
 
 ### Customer
-- Home page with hero, collections, testimonials, newsletter
-- Shop with filters (category, size, color, price), search, sorting
-- Product details with image zoom, variants, reviews
-- Cart with coupon codes
-- Wishlist
-- Checkout with COD / Razorpay / Stripe ready
-- User dashboard (orders, profile, addresses)
-- JWT authentication with email verification
 
-### Admin Panel (`/admin`)
-- Dashboard with analytics
-- Product, order, inventory management
-- User management (block/delete)
-- Coupon & banner management
-- Review approval
-- Contact/support tickets
+- Home page with hero, collections, testimonials, newsletter, and footer
+- Shop with category, size, color, price, search, and sorting filters
+- Product details with image zoom, variants, reviews, cart, and wishlist actions
+- Cart with quantity controls and coupon support
+- Wishlist, checkout, payment success/failure, and order confirmation pages
+- User dashboard with profile, orders, wishlist, addresses, and account settings
+- JWT authentication with registration, login, logout, password reset, and email verification
+
+### Admin Panel
+
+Available at `/admin`.
+
+- Dashboard analytics for users, orders, products, revenue, recent orders, and sales trends
+- Product, image, variant, stock, category, size, and color management APIs
+- Order status, shipment tracking, cancellation, and return-ready workflows
+- User blocking/deletion and role management
+- Coupon, banner, review, contact, and admin log management
 
 ## Payment Integration
 
-Configure in `backend/.env`:
+Configure keys in `backend/.env`:
 
 ```env
 RAZORPAY_KEY_ID=your_key
@@ -128,12 +132,13 @@ STRIPE_SECRET_KEY=sk_...
 ```
 
 Payment flow endpoints:
+
 - `GET /api/orders/payment/config/`
 - `POST /api/orders/payment/confirm/`
 
 ## Production Deployment
 
-### Backend (VPS)
+### Backend on VPS
 
 ```bash
 cd backend
@@ -143,14 +148,14 @@ python manage.py collectstatic --noinput
 gunicorn config.wsgi:application -c gunicorn.conf.py
 ```
 
-Use `deploy/nginx.conf` as a reference for reverse proxy setup.
+Use `deploy/nginx.conf` as the Nginx reverse proxy reference.
 
-### Frontend (Vercel)
+### Frontend on Vercel
 
-1. Set root directory to `frontend`
-2. Build command: `npm run build`
-3. Output directory: `dist`
-4. Environment variable: `VITE_API_URL=https://your-api-domain.com/api`
+1. Set the root directory to `frontend`.
+2. Set the build command to `npm run build`.
+3. Set the output directory to `dist`.
+4. Add `VITE_API_URL=https://your-api-domain.com/api`.
 
 ### Docker
 
@@ -160,18 +165,17 @@ docker-compose up --build
 
 ## Security
 
-- JWT authentication with token rotation & blacklisting
-- CORS configuration
-- CSRF protection
-- Rate limiting (100/hr anon, 1000/hr authenticated)
-- Password hashing & validation
+- JWT authentication with refresh token rotation and blacklisting
+- CORS and CSRF configuration
+- Password hashing and validation
+- Rate limiting for anonymous and authenticated users
 - Secure headers in production mode
-- Role-based access control (customer, staff, admin)
+- Role-based access control for customer, staff, and admin roles
 
 ## Environment Variables
 
-See `backend/.env.example` and `frontend/.env.example` for all configuration options.
+See `backend/.env.example` and `frontend/.env.example` for supported configuration.
 
 ## License
 
-Proprietary — The Show Man © 2026
+Proprietary - The Show Man (c) 2026

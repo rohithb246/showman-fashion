@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { productAPI, coreAPI } from '../services/api';
+import { productAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -12,7 +12,6 @@ export default function Home() {
   const [newArrivals, setNewArrivals] = useState([]);
   const [trending, setTrending] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
 
@@ -22,13 +21,11 @@ export default function Home() {
       productAPI.newArrivals(),
       productAPI.trending(),
       productAPI.categories(),
-      productAPI.banners(),
-    ]).then(([f, n, t, c, b]) => {
+    ]).then(([f, n, t, c]) => {
       setFeatured(f.data.results || f.data);
       setNewArrivals(n.data.results || n.data);
       setTrending(t.data.results || t.data);
       setCategories(c.data.results || c.data);
-      setBanners(b.data.results || b.data);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -40,8 +37,6 @@ export default function Home() {
 
   if (loading) return <LoadingSpinner fullPage />;
 
-  const heroBanner = banners[0];
-
   return (
     <div className="home">
       <section className="hero">
@@ -51,23 +46,41 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
+            className="hero-copy"
           >
-            <span className="hero-tag">Luxury Fashion</span>
-            <h1>{heroBanner?.title || 'Dress Like A Showman'}</h1>
-            <p>{heroBanner?.subtitle || 'Discover exclusive collections crafted for the modern showman'}</p>
+            <span className="hero-tag">New Collection - The Dark Carnival</span>
+            <h1>
+              Command
+              <br />
+              Every
+              <br />
+              <span>Stage.</span>
+            </h1>
+            <p>
+              Theatrical fashion for those who live beyond the ordinary.
+              <br />
+              Wearable spectacle. Unapologetic presence.
+            </p>
             <div className="hero-actions">
-              <Link to="/shop" className="btn btn-primary btn-lg">Shop Collection</Link>
-              <Link to="/shop?is_new_arrival=true" className="btn btn-outline btn-lg hero-outline">New Arrivals</Link>
+              <Link to="/shop" className="btn btn-primary btn-lg">Explore Collection</Link>
+              <Link to="/shop?is_new_arrival=true" className="btn btn-outline btn-lg hero-outline">Our Story</Link>
             </div>
           </motion.div>
-          <motion.img
-            src="/logo.png"
-            alt="The Show Man"
-            className="hero-logo"
+          <motion.div
+            className="hero-emblem-wrap"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-          />
+          >
+            <span className="orbit orbit-one" />
+            <span className="orbit orbit-two" />
+            <span className="orbit-dot" />
+            <img src="/logo.png" alt="The Show Man" className="hero-logo" />
+            <div className="hero-count">
+              <strong>XII</strong>
+              <span>Exclusive Pieces</span>
+            </div>
+          </motion.div>
         </div>
       </section>
 

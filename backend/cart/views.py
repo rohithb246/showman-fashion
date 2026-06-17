@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 from cart.models import Cart, CartItem, Wishlist
 from cart.serializers import CartSerializer, CartItemSerializer, WishlistSerializer
+from products.models import Product
 from products.models import ProductVariant
 
 
@@ -35,7 +36,13 @@ class CartItemView(APIView):
     def post(self, request):
         cart = get_or_create_cart(request.user)
         variant_id = request.data.get('variant_id')
-        quantity = int(request.data.get('quantity', 1))
+        try:
+            quantity = int(request.data.get('quantity', 1))
+        except (TypeError, ValueError):
+            return Response({'detail': 'Quantity must be a valid number.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if quantity < 1:
+            return Response({'detail': 'Quantity must be at least 1.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             variant = ProductVariant.objects.select_related('inventory').get(id=variant_id, is_active=True)
@@ -61,7 +68,10 @@ class CartItemView(APIView):
         except CartItem.DoesNotExist:
             return Response({'detail': 'Item not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        quantity = int(request.data.get('quantity', item.quantity))
+        try:
+            quantity = int(request.data.get('quantity', item.quantity))
+        except (TypeError, ValueError):
+            return Response({'detail': 'Quantity must be a valid number.'}, status=status.HTTP_400_BAD_REQUEST)
         if quantity < 1:
             item.delete()
         else:
@@ -105,6 +115,8 @@ class WishlistView(APIView):
 
     def post(self, request):
         product_id = request.data.get('product_id')
+        if not Product.objects.filter(id=product_id, is_active=True).exists():
+            return Response({'detail': 'Product not found.'}, status=status.HTTP_404_NOT_FOUND)
         item, created = Wishlist.objects.get_or_create(user=request.user, product_id=product_id)
         if created:
             return Response(WishlistSerializer(item, context={'request': request}).data, status=status.HTTP_201_CREATED)

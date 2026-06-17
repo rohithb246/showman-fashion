@@ -35,9 +35,13 @@ class ColorSerializer(serializers.ModelSerializer):
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), source='product', write_only=True
+    )
+
     class Meta:
         model = ProductImage
-        fields = ['id', 'image', 'alt_text', 'is_primary', 'sort_order']
+        fields = ['id', 'product_id', 'image', 'alt_text', 'is_primary', 'sort_order']
 
 
 class InventorySerializer(serializers.ModelSerializer):
@@ -54,6 +58,9 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     size = SizeSerializer(read_only=True)
     color = ColorSerializer(read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), source='product', write_only=True
+    )
     size_id = serializers.PrimaryKeyRelatedField(
         queryset=Size.objects.all(), source='size', write_only=True
     )
@@ -66,7 +73,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductVariant
         fields = [
-            'id', 'size', 'color', 'size_id', 'color_id', 'sku',
+            'id', 'product_id', 'size', 'color', 'size_id', 'color_id', 'sku',
             'product_name', 'price_adjustment', 'price', 'is_active', 'inventory',
         ]
 

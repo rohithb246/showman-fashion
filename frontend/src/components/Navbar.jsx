@@ -22,10 +22,10 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { to: '/', label: 'Home' },
+    { to: '/shop?is_featured=true', label: 'Collections' },
     { to: '/shop', label: 'Shop' },
-    { to: '/shop?is_new_arrival=true', label: 'New Arrivals' },
-    { to: '/shop?is_trending=true', label: 'Trending' },
+    { to: '/shop?is_new_arrival=true', label: 'Our Craft' },
+    { to: '/shop?is_trending=true', label: 'Stories' },
   ];
 
   return (
@@ -37,6 +37,10 @@ export default function Navbar() {
 
         <Link to="/" className="navbar-logo">
           <img src="/logo.png" alt="The Show Man" />
+          <span>
+            <strong>The Show Man</strong>
+            <small>Dress Like A Showman</small>
+          </span>
         </Link>
 
         <nav className={`navbar-nav ${menuOpen ? 'open' : ''}`}>
@@ -66,7 +70,7 @@ export default function Navbar() {
               <button className="btn btn-sm btn-ghost logout-btn" onClick={logout}>Logout</button>
             </div>
           ) : (
-            <Link to="/login" className="btn btn-sm btn-primary">Login</Link>
+            <Link to="/login" className="btn btn-sm btn-primary enquire-btn">Enquire</Link>
           )}
         </div>
       </div>

@@ -2,51 +2,86 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(74, 5, 96, 0.08);
+  background: #1b0021;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.12);
   transition: all 0.3s ease;
 }
 
 .navbar-transparent {
-  background: rgba(10, 10, 10, 0.6);
-  backdrop-filter: blur(16px);
-  border-bottom-color: rgba(255, 215, 0, 0.15);
+  background: rgba(27, 0, 33, 0.96);
+  border-bottom-color: rgba(255, 215, 0, 0.14);
 }
 
+.navbar .navbar-nav a,
+.navbar .icon-btn,
+.navbar .logout-btn,
 .navbar-transparent .navbar-nav a,
 .navbar-transparent .icon-btn,
 .navbar-transparent .logout-btn {
-  color: var(--gold);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .navbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  height: 92px;
   gap: 1rem;
 }
 
+.navbar-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 260px;
+}
+
 .navbar-logo img {
-  height: 52px;
-  width: auto;
+  height: 64px;
+  width: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
   transition: transform 0.3s ease;
 }
 
 .navbar-logo:hover img { transform: scale(1.05); }
 
+.navbar-logo span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.navbar-logo strong {
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.navbar-logo small {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.68rem;
+  letter-spacing: 0.42em;
+  margin-top: 0.35rem;
+  text-transform: uppercase;
+}
+
 .navbar-nav {
   display: flex;
-  gap: 2rem;
+  gap: clamp(1.6rem, 3vw, 3.2rem);
+  align-items: center;
 }
 
 .navbar-nav a {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--purple);
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.9);
   position: relative;
   transition: color 0.3s;
 }
@@ -63,12 +98,14 @@
 }
 
 .navbar-nav a:hover::after { width: 100%; }
-.navbar-nav a:hover { color: var(--gold-dark); }
+.navbar-nav a:hover { color: var(--gold); }
 
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 260px;
+  justify-content: flex-end;
 }
 
 .icon-btn {
@@ -79,13 +116,13 @@
   height: 40px;
   background: none;
   border: none;
-  color: var(--purple);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1.2rem;
   position: relative;
   transition: color 0.3s, transform 0.3s;
 }
 
-.icon-btn:hover { color: var(--gold-dark); transform: scale(1.1); }
+.icon-btn:hover { color: var(--gold); transform: scale(1.08); }
 
 .cart-badge {
   position: absolute;
@@ -107,18 +144,25 @@
 
 .logout-btn { font-size: 0.7rem !important; }
 
+.enquire-btn {
+  border-radius: 0;
+  min-width: 132px;
+  padding: 1rem 1.5rem;
+  letter-spacing: 0.18em;
+}
+
 .menu-toggle {
   display: none;
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: var(--purple);
+  color: var(--gold);
 }
 
 .search-overlay {
   padding: 1rem 0;
-  background: var(--white);
-  border-top: 1px solid var(--gray-200);
+  background: #1b0021;
+  border-top: 1px solid rgba(255, 215, 0, 0.12);
   animation: fadeInUp 0.3s ease;
 }
 
@@ -132,12 +176,34 @@
 @media (max-width: 900px) {
   .menu-toggle { display: block; }
 
+  .navbar-inner { height: 78px; }
+
+  .navbar-logo {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .navbar-logo img {
+    width: 52px;
+    height: 52px;
+  }
+
+  .navbar-logo strong { font-size: 1rem; }
+  .navbar-logo small { display: none; }
+
+  .navbar-actions {
+    min-width: auto;
+    gap: 0.2rem;
+  }
+
+  .navbar-actions .icon-btn:nth-child(2) { display: none; }
+
   .navbar-nav {
     position: fixed;
-    top: 72px;
+    top: 78px;
     left: 0;
     right: 0;
-    background: var(--white);
+    background: #1b0021;
     flex-direction: column;
     padding: 1.5rem;
     gap: 1rem;
@@ -152,12 +218,13 @@
     opacity: 1;
   }
 
-  .navbar-transparent .navbar-nav {
-    background: var(--purple-dark);
-  }
+  .navbar-transparent .navbar-nav { background: #1b0021; }
 }
 
 @media (max-width: 480px) {
-  .navbar-logo img { height: 42px; }
+  .navbar-logo img { width: 46px; height: 46px; }
+  .navbar-logo strong { font-size: 0.85rem; }
+  .icon-btn { width: 34px; height: 34px; }
+  .enquire-btn { display: none; }
   .logout-btn { display: none; }
 }
