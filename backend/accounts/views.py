@@ -9,11 +9,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.models import Address, Notification, EmailVerificationToken, PasswordResetToken
-from accounts.permissions import IsAdminUser
+from accounts.permissions import IsAdminUser, IsFullAdminUser
 from accounts.serializers import (
     UserSerializer, RegisterSerializer, AddressSerializer, NotificationSerializer,
     ChangePasswordSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,
     VerifyEmailSerializer, ProfileSerializer, AdminUserUpdateSerializer,
+    AdminUserCreateSerializer,
 )
 from accounts.services import create_verification_token, create_password_reset_token
 
@@ -192,15 +193,26 @@ class VerifyEmailView(APIView):
             return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminUserListView(generics.ListAPIView):
+class AdminUserListView(generics.ListCreateAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsFullAdminUser]
     queryset = User.objects.all().order_by('-date_joined')
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AdminUserCreateSerializer
+        return UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
 class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsFullAdminUser]
     queryset = User.objects.all()
 
     def perform_update(self, serializer):

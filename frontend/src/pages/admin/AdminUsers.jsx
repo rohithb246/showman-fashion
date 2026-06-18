@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+
+const emptyNewUser = {
+  email: '',
+  username: '',
+  password: '',
+  first_name: '',
+  last_name: '',
+  role: 'staff',
+};
 
 export default function AdminUsers() {
+  const { isFullAdmin } = useAuth();
   const [users, setUsers] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({});
+  const [newUser, setNewUser] = useState(emptyNewUser);
   const [saving, setSaving] = useState(false);
 
   const loadUsers = async () => {
@@ -16,6 +28,15 @@ export default function AdminUsers() {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  if (!isFullAdmin) {
+    return (
+      <div className="empty-state">
+        <h3>Admin access required</h3>
+        <p>Staff accounts have limited access and cannot manage users.</p>
+      </div>
+    );
+  }
 
   const startEdit = (user) => {
     setEditingId(user.id);
@@ -63,6 +84,35 @@ export default function AdminUsers() {
     await loadUsers();
   };
 
+  const createUser = async (event) => {
+    event.preventDefault();
+    if (!newUser.email.trim() || !newUser.username.trim() || !newUser.password) {
+      toast.error('Email, username, and password are required');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await adminAPI.createUser({
+        ...newUser,
+        email: newUser.email.trim(),
+        username: newUser.username.trim(),
+        first_name: newUser.first_name.trim(),
+        last_name: newUser.last_name.trim(),
+      });
+      toast.success(`${newUser.role === 'staff' ? 'Staff' : newUser.role === 'admin' ? 'Admin' : 'User'} created`);
+      setNewUser(emptyNewUser);
+      await loadUsers();
+    } catch (err) {
+      const data = err.response?.data;
+      const firstKey = data && typeof data === 'object' ? Object.keys(data)[0] : null;
+      const detail = data?.detail || (firstKey && Array.isArray(data[firstKey]) ? `${firstKey}: ${data[firstKey].join(', ')}` : 'Could not create user');
+      toast.error(detail);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div>
       <div className="admin-page-header">
@@ -71,6 +121,43 @@ export default function AdminUsers() {
           <p className="admin-page-subtitle">Control customer usernames, roles, and account access.</p>
         </div>
       </div>
+
+      <form className="admin-form-panel" onSubmit={createUser}>
+        <div className="admin-section-title">Create User / Staff / Admin</div>
+        <div className="admin-form-grid">
+          <label>
+            Email
+            <input className="admin-input" type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
+          </label>
+          <label>
+            Username
+            <input className="admin-input" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} required />
+          </label>
+          <label>
+            Password
+            <input className="admin-input" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
+          </label>
+          <label>
+            Role
+            <select className="admin-input" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
+              <option value="customer">User</option>
+              <option value="staff">Staff - limited admin access</option>
+              <option value="admin">Admin - all access</option>
+            </select>
+          </label>
+          <label>
+            First Name
+            <input className="admin-input" value={newUser.first_name} onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })} />
+          </label>
+          <label>
+            Last Name
+            <input className="admin-input" value={newUser.last_name} onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })} />
+          </label>
+        </div>
+        <div className="admin-actions">
+          <button className="btn btn-primary" disabled={saving}>{saving ? 'Creating...' : 'Create Account'}</button>
+        </div>
+      </form>
 
       <div className="admin-table-wrap">
         <table className="admin-table">

@@ -48,6 +48,11 @@
 
 .checkout-summary h3 { color: var(--purple); margin-bottom: 1.5rem; }
 
+.checkout-summary .summary-row.discount {
+  color: #15803d;
+  font-weight: 700;
+}
+
 @media (max-width: 768px) {
   .checkout-layout { grid-template-columns: 1fr; }
   .checkout-summary { position: static; }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { productAPI } from '../services/api';
@@ -11,6 +11,7 @@ import './ProductDetail.css';
 
 export default function ProductDetail() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const [product, setProduct] = useState(null);
@@ -61,45 +62,49 @@ export default function ProductDetail() {
     ? product.images
     : [{ image: null, alt_text: product.name }];
 
-  const selectedVariant = product.variants?.find(
+  const availableVariants = (product.variants || []).filter((variant) => variant.inventory?.in_stock);
+  const hasStock = availableVariants.length > 0;
+  const selectedVariant = availableVariants.find(
     (v) => v.size?.id === selectedSize && v.color?.id === selectedColor
   );
 
-  const sizes = [...new Map(product.variants?.map((v) => [v.size?.id, v.size])).values()].filter(Boolean);
-  const colors = [...new Map(product.variants?.map((v) => [v.color?.id, v.color])).values()].filter(Boolean);
-  const sizeIsAvailable = (sizeId) => product.variants?.some(
-    (variant) => variant.size?.id === sizeId && variant.inventory?.in_stock
+  const sizes = [...new Map(availableVariants
+    .filter((variant) => !selectedColor || variant.color?.id === selectedColor)
+    .map((v) => [v.size?.id, v.size])).values()].filter(Boolean);
+  const colors = [...new Map(availableVariants
+    .filter((variant) => !selectedSize || variant.size?.id === selectedSize)
+    .map((v) => [v.color?.id, v.color])).values()].filter(Boolean);
+  const sizeIsAvailable = (sizeId) => availableVariants.some(
+    (variant) => variant.size?.id === sizeId && (!selectedColor || variant.color?.id === selectedColor)
   );
-  const colorIsAvailable = (colorId) => product.variants?.some(
-    (variant) => variant.color?.id === colorId && variant.inventory?.in_stock
+  const colorIsAvailable = (colorId) => availableVariants.some(
+    (variant) => variant.color?.id === colorId && (!selectedSize || variant.size?.id === selectedSize)
   );
 
   const selectSize = (sizeId) => {
     setSelectedSize(sizeId);
-    const matching = product.variants?.find(
+    const matching = availableVariants.find(
       (variant) => variant.size?.id === sizeId
         && variant.color?.id === selectedColor
-        && variant.inventory?.in_stock
-    ) || product.variants?.find(
-      (variant) => variant.size?.id === sizeId && variant.inventory?.in_stock
+    ) || availableVariants.find(
+      (variant) => variant.size?.id === sizeId
     );
     if (matching) setSelectedColor(matching.color?.id);
   };
 
   const selectColor = (colorId) => {
     setSelectedColor(colorId);
-    const matching = product.variants?.find(
+    const matching = availableVariants.find(
       (variant) => variant.color?.id === colorId
         && variant.size?.id === selectedSize
-        && variant.inventory?.in_stock
-    ) || product.variants?.find(
-      (variant) => variant.color?.id === colorId && variant.inventory?.in_stock
+    ) || availableVariants.find(
+      (variant) => variant.color?.id === colorId
     );
     if (matching) setSelectedSize(matching.size?.id);
   };
 
   const handleAddToCart = async () => {
-    if (!user) { window.location.href = '/login'; return; }
+    if (!user) { navigate('/login'); return; }
     if (!selectedVariant) { toast.error('Please select size and color'); return; }
     if (!selectedVariant.inventory?.in_stock) { toast.error('Out of stock'); return; }
     await addToCart(selectedVariant.id, quantity);
@@ -108,7 +113,7 @@ export default function ProductDetail() {
 
   const handleReview = async (e) => {
     e.preventDefault();
-    if (!user) { window.location.href = '/login'; return; }
+    if (!user) { navigate('/login'); return; }
     try {
       await productAPI.createReview({ product: product.id, ...reviewForm });
       toast.success('Review submitted for approval');
@@ -152,7 +157,7 @@ export default function ProductDetail() {
           </div>
 
           <motion.div className="product-details" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <p className="product-category">{product.category?.name}</p>
+            <p className="product-category">{product.brand_name || product.category?.name}</p>
             <h1>{product.name}</h1>
             <div className="product-rating-header">
               {'★'.repeat(Math.round(product.average_rating || 0))}
@@ -166,6 +171,8 @@ export default function ProductDetail() {
             </div>
             <p className="product-desc">{product.description}</p>
 
+            {hasStock ? (
+              <>
             <div className="variant-selectors">
               <div className="selector-group">
                 <label>Size</label>
@@ -224,6 +231,20 @@ export default function ProductDetail() {
                 Wishlist
               </button>
             </div>
+              </>
+            ) : (
+              <>
+                <p className="sold-out-message">Out of stock</p>
+                <div className="product-actions">
+                  <button
+                    className={`btn btn-outline btn-lg ${isInWishlist(product.id) ? 'active' : ''}`}
+                    onClick={() => toggleWishlist(product.id)}
+                  >
+                    Wishlist
+                  </button>
+                </div>
+              </>
+            )}
 
             {product.specifications && Object.keys(product.specifications).length > 0 && (
               <div className="specifications">

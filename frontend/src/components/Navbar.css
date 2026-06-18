@@ -211,9 +211,63 @@
 }
 
 .user-menu {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+.user-popover {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  right: 0;
+  z-index: 1010;
+  min-width: 220px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(74, 5, 96, 0.12);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  color: var(--purple);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.user-popover::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  right: 1rem;
+  width: 12px;
+  height: 12px;
+  background: var(--white);
+  border-left: 1px solid rgba(74, 5, 96, 0.12);
+  border-top: 1px solid rgba(74, 5, 96, 0.12);
+  transform: rotate(45deg);
+}
+
+.user-menu:hover .user-popover,
+.user-menu:focus-within .user-popover {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.user-popover strong,
+.user-popover span {
+  display: block;
+}
+
+.user-popover strong {
+  margin-bottom: 0.25rem;
+  font-size: 0.86rem;
+}
+
+.user-popover span {
+  color: var(--gray-500);
+  font-size: 0.78rem;
+  word-break: break-word;
 }
 
 .logout-btn {

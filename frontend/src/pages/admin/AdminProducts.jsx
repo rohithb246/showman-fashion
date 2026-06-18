@@ -6,6 +6,7 @@ import { productAPI } from '../../services/api';
 const emptyProduct = {
   name: '',
   slug: '',
+  brand_name: '',
   description: '',
   category_id: '',
   subcategory_id: '',
@@ -48,7 +49,7 @@ function productPayload(form) {
 
 function apiErrorMessage(error) {
   const data = error.response?.data;
-  if (!data) return 'Could not save product';
+  if (!data) return error.message || 'Could not save product';
   if (typeof data === 'string') return data;
   if (data.detail) return data.detail;
   const firstKey = Object.keys(data)[0];
@@ -56,6 +57,16 @@ function apiErrorMessage(error) {
   if (Array.isArray(firstValue)) return `${firstKey}: ${firstValue.join(', ')}`;
   if (typeof firstValue === 'string') return `${firstKey}: ${firstValue}`;
   return 'Could not save product';
+}
+
+function uniqueOptionIds(variants, field) {
+  return [...new Set(variants.map((variant) => variant[field]?.id).filter(Boolean))];
+}
+
+function sameIds(left, right) {
+  if (left.length !== right.length) return false;
+  const rightIds = new Set(right.map(String));
+  return left.every((id) => rightIds.has(String(id)));
 }
 
 export default function AdminProducts() {
@@ -75,6 +86,11 @@ export default function AdminProducts() {
   const selectedVariant = useMemo(
     () => variants.find((variant) => String(variant.id) === String(stockForm.variant_id)),
     [stockForm.variant_id, variants]
+  );
+  const currentImages = selectedProduct?.images || [];
+  const visibleSubcategories = useMemo(
+    () => subcategories.filter((subcategory) => String(subcategory.category) === String(form.category_id)),
+    [form.category_id, subcategories]
   );
 
   const loadData = async () => {
@@ -105,10 +121,12 @@ export default function AdminProducts() {
 
   const editProduct = async (product) => {
     const { data } = await productAPI.get(product.slug, { include_inactive: true });
+    const productVariants = data.variants || [];
     setSelectedProduct(data);
     setForm({
       name: data.name,
       slug: data.slug,
+      brand_name: data.brand_name || '',
       description: data.description,
       category_id: data.category?.id || '',
       subcategory_id: data.subcategory?.id || '',
@@ -119,14 +137,22 @@ export default function AdminProducts() {
       is_new_arrival: data.is_new_arrival,
       is_trending: data.is_trending,
     });
-    setStockForm(emptyStock);
+    setStockForm({
+      ...emptyStock,
+      size_ids: uniqueOptionIds(productVariants, 'size'),
+      color_ids: uniqueOptionIds(productVariants, 'color'),
+    });
     setImageFile(null);
   };
 
   const chooseVariant = (variantId) => {
     const variant = variants.find((item) => String(item.id) === String(variantId));
     if (!variant) {
-      setStockForm(emptyStock);
+      setStockForm({
+        ...emptyStock,
+        size_ids: uniqueOptionIds(variants, 'size'),
+        color_ids: uniqueOptionIds(variants, 'color'),
+      });
       return;
     }
     setStockForm({
@@ -146,8 +172,21 @@ export default function AdminProducts() {
     setForm((current) => ({
       ...current,
       [field]: value,
+      ...(field === 'category_id' ? { subcategory_id: '' } : {}),
       slug: field === 'name' && !selectedProduct ? slugify(value) : current.slug,
     }));
+  };
+
+  const validateProductForm = () => {
+    if (form.subcategory_id) {
+      const subcategory = subcategories.find((item) => String(item.id) === String(form.subcategory_id));
+      if (subcategory && String(subcategory.category) !== String(form.category_id)) {
+        throw new Error('Choose a subcategory from the selected category.');
+      }
+    }
+    if (!selectedProduct && (!stockForm.size_ids.length || !stockForm.color_ids.length)) {
+      throw new Error('Select at least one size and one color before adding a new product.');
+    }
   };
 
   const saveImage = async (productId, productName) => {
@@ -161,7 +200,83 @@ export default function AdminProducts() {
     await productAPI.createImage(imageData);
   };
 
+  const syncProductOptions = async (productId) => {
+    const selectedSizeIds = stockForm.size_ids.map(String);
+    const selectedColorIds = stockForm.color_ids.map(String);
+    const currentSizeIds = uniqueOptionIds(variants, 'size');
+    const currentColorIds = uniqueOptionIds(variants, 'color');
+
+    if ((selectedSizeIds.length && !selectedColorIds.length) || (!selectedSizeIds.length && selectedColorIds.length)) {
+      throw new Error('Select at least one size and one color, or unselect both to remove all stock options.');
+    }
+
+    if (sameIds(stockForm.size_ids, currentSizeIds) && sameIds(stockForm.color_ids, currentColorIds)) {
+      return;
+    }
+
+    const selectedMatrix = new Set(
+      selectedSizeIds.flatMap((sizeId) => selectedColorIds.map((colorId) => `${sizeId}:${colorId}`))
+    );
+    const variantsToDelete = variants.filter((variant) => (
+      !selectedMatrix.has(`${variant.size?.id}:${variant.color?.id}`)
+    ));
+
+    for (const variant of variantsToDelete) {
+      if (variant.inventory?.id) {
+        await productAPI.deleteInventory(variant.inventory.id);
+      } else {
+        await productAPI.deleteVariant(variant.id);
+      }
+    }
+
+    const existingByOption = new Map(
+      variants.map((variant) => [`${variant.size?.id}:${variant.color?.id}`, variant])
+    );
+    for (const sizeId of stockForm.size_ids) {
+      for (const colorId of stockForm.color_ids) {
+        const key = `${sizeId}:${colorId}`;
+        const existing = existingByOption.get(key);
+        if (existing) {
+          if (!existing.is_active) {
+            await productAPI.updateVariant(existing.id, { is_active: true });
+          }
+          if (!existing.inventory?.id) {
+            await productAPI.createInventory({
+              variant: existing.id,
+              quantity: Number(stockForm.quantity || 0),
+              low_stock_threshold: Number(stockForm.low_stock_threshold || 0),
+            });
+          }
+          continue;
+        }
+
+        const size = sizes.find((item) => String(item.id) === String(sizeId));
+        const color = colors.find((item) => String(item.id) === String(colorId));
+        const sku = `${selectedProduct.slug}-${size?.name || 'size'}-${color?.name || 'color'}`
+          .toUpperCase()
+          .replace(/[^A-Z0-9]+/g, '-');
+        const { data } = await productAPI.createVariant({
+          product_id: productId,
+          size_id: sizeId,
+          color_id: colorId,
+          sku,
+          price_adjustment: '0.00',
+          is_active: true,
+        });
+        await productAPI.createInventory({
+          variant: data.id,
+          quantity: Number(stockForm.quantity || 0),
+          low_stock_threshold: Number(stockForm.low_stock_threshold || 0),
+        });
+      }
+    }
+  };
+
   const saveStock = async (productId, productSlug) => {
+    if (selectedProduct && !stockForm.variant_id) {
+      await syncProductOptions(productId);
+      return;
+    }
     if (!stockForm.variant_id && stockForm.size_ids.length && stockForm.color_ids.length) {
       await productAPI.bulkCreateVariants({
         product_id: productId,
@@ -221,6 +336,7 @@ export default function AdminProducts() {
     event.preventDefault();
     setSaving(true);
     try {
+      validateProductForm();
       const payload = productPayload(form);
       const response = selectedProduct
         ? await productAPI.update(selectedProduct.slug, payload)
@@ -232,7 +348,7 @@ export default function AdminProducts() {
       resetForm();
       toast.success('Product saved');
     } catch (error) {
-      toast.error(error.message || apiErrorMessage(error));
+      toast.error(apiErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -295,6 +411,10 @@ export default function AdminProducts() {
             <input className="admin-input" value={form.slug} onChange={(e) => updateForm('slug', slugify(e.target.value))} required />
           </label>
           <label>
+            Brand Name
+            <input className="admin-input" value={form.brand_name} onChange={(e) => updateForm('brand_name', e.target.value)} placeholder="e.g. The Show Man" />
+          </label>
+          <label>
             Category
             <select className="admin-input" value={form.category_id} onChange={(e) => updateForm('category_id', e.target.value)} required>
               <option value="">Select category</option>
@@ -305,7 +425,7 @@ export default function AdminProducts() {
             Subcategory
             <select className="admin-input" value={form.subcategory_id} onChange={(e) => updateForm('subcategory_id', e.target.value)}>
               <option value="">None</option>
-              {subcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>)}
+              {visibleSubcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>)}
             </select>
           </label>
           <label>
@@ -323,6 +443,15 @@ export default function AdminProducts() {
           <label>
             Upload Image
             <input className="admin-input" type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
+            {selectedProduct && (
+              <div className="admin-image-strip">
+                {currentImages.length ? currentImages.map((image) => (
+                  <img key={image.id} src={image.image} alt={image.alt_text || selectedProduct.name} />
+                )) : (
+                  <span className="admin-muted">No image uploaded yet.</span>
+                )}
+              </div>
+            )}
           </label>
         </div>
 
@@ -341,7 +470,7 @@ export default function AdminProducts() {
               <option value="">Add new size/color stock</option>
               {variants.map((variant) => (
                 <option key={variant.id} value={variant.id}>
-                  {variant.size?.name} / {variant.color?.name} / {variant.sku}
+                  {variant.size?.name} / {variant.color?.name} / Qty {variant.inventory?.quantity ?? 0} / {variant.sku}
                 </option>
               ))}
             </select>
@@ -431,13 +560,14 @@ export default function AdminProducts() {
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
-            <tr><th>Image</th><th>Name</th><th>Price</th><th>Featured</th><th>Visible</th><th>Actions</th></tr>
+            <tr><th>Image</th><th>Name</th><th>Brand</th><th>Price</th><th>Featured</th><th>Visible</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {products.map((product) => (
               <tr key={product.id}>
                 <td>{product.primary_image ? <img className="admin-thumb" src={product.primary_image} alt={product.name} /> : 'No image'}</td>
                 <td><strong>{product.name}</strong><br /><span className="admin-muted">{product.category_name}</span></td>
+                <td>{product.brand_name || '-'}</td>
                 <td>Rs {Number(product.effective_price).toLocaleString()}</td>
                 <td>{product.is_featured ? 'Yes' : 'No'}</td>
                 <td>{product.is_active ? <span className="badge badge-gold">Shown</span> : <span className="badge badge-sale">Hidden</span>}</td>

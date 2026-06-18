@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from django.db.models import Q
 from django.utils import timezone
 
-from accounts.permissions import IsAdminUser
+from accounts.permissions import IsAdminUser, IsFullAdminUser
 from products.models import (
     Category, SubCategory, Product, ProductImage, ProductVariant,
     Size, Color, Inventory, Review, Coupon, Banner,
@@ -89,7 +89,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.filter(is_active=True).select_related('category', 'subcategory').prefetch_related('images', 'variants')
     lookup_field = 'slug'
     filterset_class = ProductFilter
-    search_fields = ['name', 'description']
+    search_fields = ['name', 'brand_name', 'description']
     ordering_fields = ['base_price', 'created_at', 'name']
     ordering = ['-created_at']
 
@@ -337,12 +337,14 @@ class CouponViewSet(viewsets.ModelViewSet):
     serializer_class = CouponSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]
+        if self.action in ['list', 'retrieve', 'create', 'update', 'partial_update', 'destroy']:
+            return [IsFullAdminUser()]
         return [IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
-        if self.request.user.is_authenticated and self.request.user.is_admin_user:
+        if self.request.user.is_authenticated and (
+            self.request.user.is_superuser or self.request.user.role == self.request.user.Role.ADMIN
+        ):
             return Coupon.objects.all().order_by('-valid_until')
         return Coupon.objects.filter(is_active=True).order_by('-valid_until')
 

@@ -115,8 +115,11 @@ function CheckoutContent() {
   };
 
   const subtotal = Number(cart?.subtotal || 0);
-  const shipping = subtotal >= 999 ? 0 : 99;
-  const tax = subtotal * 0.18;
+  const discount = Number(cart?.discount_amount || 0);
+  const discountedSubtotal = Number(cart?.total || subtotal - discount);
+  const shipping = discountedSubtotal >= 999 ? 0 : 99;
+  const tax = discountedSubtotal * 0.18;
+  const total = discountedSubtotal + shipping + tax;
 
   return (
     <form className="checkout-layout" onSubmit={handleSubmit}>
@@ -160,9 +163,10 @@ function CheckoutContent() {
       <div className="checkout-summary glass-card">
         <h3>Order Summary</h3>
         <div className="summary-row"><span>Items ({cart?.item_count})</span><span>₹{subtotal.toLocaleString()}</span></div>
+        {discount > 0 && <div className="summary-row discount"><span>Coupon {cart?.coupon?.code ? `(${cart.coupon.code})` : ''}</span><span>-₹{discount.toLocaleString()}</span></div>}
         <div className="summary-row"><span>Shipping</span><span>{shipping ? `₹${shipping}` : 'Free'}</span></div>
         <div className="summary-row"><span>Tax</span><span>₹{tax.toFixed(0)}</span></div>
-        <div className="summary-row total"><span>Total</span><span>₹{(subtotal + shipping + tax).toFixed(0)}</span></div>
+        <div className="summary-row total"><span>Total</span><span>₹{total.toFixed(0)}</span></div>
         <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: '1.5rem' }}>
           {loading ? 'Processing...' : form.payment_provider === 'cod' ? 'Place Order' : 'Pay Securely'}
         </button>

@@ -170,6 +170,18 @@
 .stock-status { font-size: 0.85rem; font-weight: 600; }
 .in-stock { color: #27ae60; }
 .out-stock { color: #e74c3c; }
+.sold-out-message {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  margin: 0 0 1.5rem;
+  border: 1px solid rgba(231, 76, 60, 0.25);
+  border-radius: var(--radius);
+  background: rgba(231, 76, 60, 0.08);
+  color: #c0392b;
+  font-weight: 700;
+}
 
 .product-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
 

@@ -26,7 +26,7 @@ export default function Navbar() {
     { to: '/shop', label: 'Shop' },
     { to: '/shop?is_new_arrival=true', label: 'New Arrivals' },
     { to: '/shop?category=accessories', label: 'Accessories' },
-    { to: '/shop?category=footwear', label: 'Shoes' },
+    { to: '/shop?category=shoes', label: 'Shoes' },
   ];
   const currentPath = `${location.pathname}${location.search}`;
 
@@ -85,6 +85,10 @@ export default function Navbar() {
               <Link to={isAdmin ? '/admin' : '/dashboard'} className="icon-btn" aria-label="Account">
                 <FiUser />
               </Link>
+              <div className="user-popover" role="tooltip">
+                <strong>{user.username || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Account'}</strong>
+                <span>{user.email}</span>
+              </div>
               <button className="btn btn-sm btn-ghost logout-btn" onClick={logout}>Logout</button>
             </div>
           ) : (

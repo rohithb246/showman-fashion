@@ -9,6 +9,7 @@ export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [colors, setColors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,7 @@ export default function Shop() {
 
   useEffect(() => {
     productAPI.categories().then((r) => setCategories(r.data.results || r.data));
+    productAPI.subcategories().then((r) => setSubcategories(r.data.results || r.data));
     productAPI.sizes().then((r) => setSizes(r.data.results || r.data));
     productAPI.colors().then((r) => setColors(r.data.results || r.data));
   }, []);
@@ -30,6 +32,7 @@ export default function Shop() {
     productAPI.list({
       search: requestParams.search,
       category: requestParams.category,
+      subcategory: requestParams.subcategory,
       size: requestParams.size,
       color: requestParams.color,
       min_price: requestParams.min_price,
@@ -49,11 +52,16 @@ export default function Shop() {
     const newParams = new URLSearchParams(searchParams);
     if (value) newParams.set(key, value);
     else newParams.delete(key);
+    if (key === 'category') newParams.delete('subcategory');
     newParams.delete('page');
     setSearchParams(newParams);
   };
 
   const clearFilters = () => setSearchParams({});
+  const selectedCategory = categories.find((c) => c.slug === params.category);
+  const visibleSubcategories = selectedCategory
+    ? subcategories.filter((s) => s.category === selectedCategory.id)
+    : subcategories;
 
   return (
     <div className="shop-page">
@@ -83,6 +91,23 @@ export default function Shop() {
               </label>
             ))}
           </div>
+
+          {visibleSubcategories.length > 0 && (
+            <div className="filter-group">
+              <h4>Subcategory</h4>
+              {visibleSubcategories.map((s) => (
+                <label key={s.id} className="filter-option">
+                  <input
+                    type="radio"
+                    name="subcategory"
+                    checked={params.subcategory === s.slug}
+                    onChange={() => updateFilter('subcategory', params.subcategory === s.slug ? '' : s.slug)}
+                  />
+                  {s.name}
+                </label>
+              ))}
+            </div>
+          )}
 
           <div className="filter-group">
             <h4>Size</h4>

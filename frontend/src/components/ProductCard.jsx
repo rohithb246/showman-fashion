@@ -73,7 +73,7 @@ export default function ProductCard({ product, index = 0 }) {
           </button>
         </div>
         <div className="product-info">
-          <p className="product-category">{product.category_name}</p>
+          <p className="product-category">{product.brand_name || product.category_name}</p>
           <h3 className="product-name">{product.name}</h3>
           <div className="product-price">
             <span className="current-price">₹{Number(product.effective_price).toLocaleString()}</span>

@@ -110,7 +110,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'name', 'slug', 'base_price', 'sale_price', 'effective_price',
+            'id', 'name', 'slug', 'brand_name', 'base_price', 'sale_price', 'effective_price',
             'primary_image', 'is_featured', 'is_new_arrival', 'is_trending',
             'is_active', 'average_rating', 'review_count', 'category_name', 'variants',
         ]
@@ -140,7 +140,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     average_rating = serializers.FloatField(read_only=True)
     review_count = serializers.IntegerField(read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(), source='category', write_only=True, required=False
+        queryset=Category.objects.all(), source='category', write_only=True
     )
     subcategory_id = serializers.PrimaryKeyRelatedField(
         queryset=SubCategory.objects.all(), source='subcategory', write_only=True, required=False
@@ -149,7 +149,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'name', 'slug', 'description', 'specifications',
+            'id', 'name', 'slug', 'brand_name', 'description', 'specifications',
             'category', 'subcategory', 'category_id', 'subcategory_id',
             'base_price', 'sale_price', 'effective_price',
             'is_featured', 'is_new_arrival', 'is_trending', 'is_active',
@@ -174,6 +174,15 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         if not self._is_admin_request():
             variants = variants.filter(is_active=True)
         return ProductVariantSerializer(variants, many=True, context=self.context).data
+
+    def validate(self, attrs):
+        category = attrs.get('category', getattr(self.instance, 'category', None))
+        subcategory = attrs.get('subcategory', getattr(self.instance, 'subcategory', None))
+        if subcategory and category and subcategory.category_id != category.id:
+            raise serializers.ValidationError({
+                'subcategory_id': 'Choose a subcategory from the selected category.'
+            })
+        return attrs
 
 
 class ReviewSerializer(serializers.ModelSerializer):

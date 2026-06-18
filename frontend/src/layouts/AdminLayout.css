@@ -333,6 +333,22 @@
   color: var(--gold);
 }
 
+.admin-image-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.35rem;
+}
+
+.admin-image-strip img {
+  width: 72px;
+  height: 88px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  object-fit: cover;
+  background: var(--white);
+}
+
 .status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 50px;

@@ -65,6 +65,7 @@ class Color(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
+    brand_name = models.CharField(max_length=120, blank=True)
     description = models.TextField()
     specifications = models.JSONField(default=dict, blank=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')

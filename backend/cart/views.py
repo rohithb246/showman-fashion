@@ -109,10 +109,15 @@ class ApplyCouponView(APIView):
         code = request.data.get('code', '').upper()
         try:
             coupon = Coupon.objects.get(code=code)
-            if coupon.is_valid():
+            if coupon.is_valid() and cart.subtotal >= coupon.min_order_amount:
                 cart.coupon_code = code
                 cart.save()
                 return Response(CartSerializer(cart, context={'request': request}).data)
+            if coupon.is_valid():
+                return Response(
+                    {'detail': f'Minimum order amount is ₹{coupon.min_order_amount}.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             return Response({'detail': 'Coupon is invalid or expired.'}, status=status.HTTP_400_BAD_REQUEST)
         except Coupon.DoesNotExist:
             return Response({'detail': 'Invalid coupon.'}, status=status.HTTP_404_NOT_FOUND)

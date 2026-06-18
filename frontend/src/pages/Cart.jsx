@@ -29,10 +29,12 @@ function CartContent() {
     );
   }
 
-  const subtotal = Number(cart.subtotal);
-  const shipping = subtotal >= 999 ? 0 : 99;
-  const tax = subtotal * 0.18;
-  const total = subtotal + shipping + tax;
+  const subtotal = Number(cart.subtotal || 0);
+  const discount = Number(cart.discount_amount || 0);
+  const discountedSubtotal = Number(cart.total || subtotal - discount);
+  const shipping = discountedSubtotal >= 999 ? 0 : 99;
+  const tax = discountedSubtotal * 0.18;
+  const total = discountedSubtotal + shipping + tax;
 
   return (
     <div className="cart-layout">
@@ -60,6 +62,12 @@ function CartContent() {
       <div className="cart-summary glass-card">
         <h3>Order Summary</h3>
         <div className="summary-row"><span>Subtotal</span><span>₹{subtotal.toLocaleString()}</span></div>
+        {discount > 0 && (
+          <div className="summary-row discount">
+            <span>Coupon {cart.coupon?.code ? `(${cart.coupon.code})` : ''}</span>
+            <span>-₹{discount.toLocaleString()}</span>
+          </div>
+        )}
         <div className="summary-row"><span>Shipping</span><span>{shipping ? `₹${shipping}` : 'Free'}</span></div>
         <div className="summary-row"><span>Tax (18%)</span><span>₹{tax.toFixed(0)}</span></div>
         <div className="summary-row total"><span>Total</span><span>₹{total.toFixed(0)}</span></div>

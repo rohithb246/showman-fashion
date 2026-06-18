@@ -90,9 +90,10 @@ def process_checkout(user, data):
         except Coupon.DoesNotExist:
             pass
 
-    shipping_cost = Decimal('0') if subtotal >= Decimal('999') else Decimal('99')
-    tax = (subtotal - discount) * Decimal('0.18')
-    total = subtotal - discount + shipping_cost + tax
+    discounted_subtotal = subtotal - discount
+    shipping_cost = Decimal('0') if discounted_subtotal >= Decimal('999') else Decimal('99')
+    tax = discounted_subtotal * Decimal('0.18')
+    total = discounted_subtotal + shipping_cost + tax
 
     order = Order.objects.create(
         user=user,

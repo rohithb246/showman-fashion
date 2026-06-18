@@ -11,15 +11,16 @@ const navItems = [
   { to: '/admin/products', icon: FiPackage, label: 'Products' },
   { to: '/admin/orders', icon: FiShoppingCart, label: 'Orders' },
   { to: '/admin/inventory', icon: FiBox, label: 'Inventory' },
-  { to: '/admin/users', icon: FiUsers, label: 'Users' },
-  { to: '/admin/coupons', icon: FiTag, label: 'Coupons' },
+  { to: '/admin/users', icon: FiUsers, label: 'Users', fullAdminOnly: true },
+  { to: '/admin/coupons', icon: FiTag, label: 'Coupons', fullAdminOnly: true },
   { to: '/admin/banners', icon: FiImage, label: 'Banners' },
   { to: '/admin/reviews', icon: FiMessageSquare, label: 'Reviews' },
   { to: '/admin/contacts', icon: FiMessageSquare, label: 'Contacts' },
 ];
 
 export default function AdminLayout() {
-  const { logout } = useAuth();
+  const { logout, isFullAdmin } = useAuth();
+  const visibleNavItems = navItems.filter((item) => !item.fullAdminOnly || isFullAdmin);
 
   return (
     <div className="admin-layout">
@@ -29,7 +30,7 @@ export default function AdminLayout() {
           <span>Admin Panel</span>
         </div>
         <nav className="admin-nav">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

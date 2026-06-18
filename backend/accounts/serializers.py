@@ -30,6 +30,45 @@ class AdminUserUpdateSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_blocked']
         read_only_fields = ['id']
 
+    def save(self, **kwargs):
+        user = super().save(**kwargs)
+        if user.role == User.Role.ADMIN:
+            user.is_staff = True
+            user.is_superuser = True
+        elif user.role == User.Role.STAFF:
+            user.is_staff = True
+            user.is_superuser = False
+        else:
+            user.is_staff = False
+            user.is_superuser = False
+        user.save(update_fields=['is_staff', 'is_superuser'])
+        return user
+
+
+class AdminUserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'role', 'password']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        role = validated_data.get('role', User.Role.CUSTOMER)
+        user = User(**validated_data)
+        user.set_password(password)
+        if role == User.Role.ADMIN:
+            user.is_staff = True
+            user.is_superuser = True
+        elif role == User.Role.STAFF:
+            user.is_staff = True
+            user.is_superuser = False
+        user.email_verified = True
+        user.save()
+        Profile.objects.create(user=user)
+        return user
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
