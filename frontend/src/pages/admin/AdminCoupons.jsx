@@ -25,6 +25,15 @@ function toApiDate(value) {
   return value ? new Date(value).toISOString() : '';
 }
 
+function errorMessage(error) {
+  const data = error.response?.data;
+  if (!data) return 'Could not save coupon';
+  if (data.detail) return data.detail;
+  const key = Object.keys(data)[0];
+  const value = data[key];
+  return `${key}: ${Array.isArray(value) ? value.join(', ') : value}`;
+}
+
 export default function AdminCoupons() {
   const [coupons, setCoupons] = useState([]);
   const [form, setForm] = useState(emptyCoupon);
@@ -81,8 +90,8 @@ export default function AdminCoupons() {
       await loadCoupons();
       resetForm();
       toast.success('Coupon saved');
-    } catch {
-      toast.error('Could not save coupon');
+    } catch (error) {
+      toast.error(errorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -90,9 +99,23 @@ export default function AdminCoupons() {
 
   const deleteCoupon = async (coupon) => {
     if (!window.confirm(`Delete coupon ${coupon.code}?`)) return;
-    await productAPI.deleteCoupon(coupon.id);
-    await loadCoupons();
-    toast.success('Coupon deleted');
+    try {
+      await productAPI.deleteCoupon(coupon.id);
+      await loadCoupons();
+      toast.success('Coupon deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not delete coupon');
+    }
+  };
+
+  const toggleCoupon = async (coupon) => {
+    try {
+      await productAPI.updateCoupon(coupon.id, { is_active: !coupon.is_active });
+      await loadCoupons();
+      toast.success(coupon.is_active ? 'Coupon disabled' : 'Coupon enabled');
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
   };
 
   return (
@@ -167,7 +190,10 @@ export default function AdminCoupons() {
                 <td>
                   <div className="admin-actions">
                     <button className="btn btn-sm btn-outline" onClick={() => editCoupon(coupon)}>Edit</button>
-                    <button className="btn btn-sm btn-secondary" onClick={() => deleteCoupon(coupon)}>Delete</button>
+                    <button className="btn btn-sm btn-secondary" onClick={() => toggleCoupon(coupon)}>
+                      {coupon.is_active ? 'Disable' : 'Enable'}
+                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteCoupon(coupon)}>Delete</button>
                   </div>
                 </td>
               </tr>

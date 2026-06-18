@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsAdminUser
 from core.models import ContactMessage, AdminLog
-from core.serializers import ContactMessageSerializer
+from core.serializers import ContactMessageSerializer, ContactAdminSerializer
 
 
 class ContactCreateView(generics.CreateAPIView):
@@ -20,14 +20,14 @@ class ContactCreateView(generics.CreateAPIView):
 
 class ContactAdminListView(generics.ListAPIView):
     queryset = ContactMessage.objects.all()
-    serializer_class = ContactMessageSerializer
+    serializer_class = ContactAdminSerializer
     permission_classes = [IsAdminUser]
     filterset_fields = ['status']
 
 
-class ContactAdminDetailView(generics.RetrieveUpdateAPIView):
+class ContactAdminDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ContactMessage.objects.all()
-    serializer_class = ContactMessageSerializer
+    serializer_class = ContactAdminSerializer
     permission_classes = [IsAdminUser]
 
 

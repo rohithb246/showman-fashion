@@ -6,10 +6,21 @@ import { useCart } from '../context/CartContext';
 import ProtectedRoute from '../components/ProtectedRoute';
 import './Checkout.css';
 
+function loadRazorpay() {
+  if (window.Razorpay) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 function CheckoutContent() {
   const navigate = useNavigate();
   const { cart, fetchCart } = useCart();
-  const [addresses, setAddresses] = useState([]);
   const [paymentConfig, setPaymentConfig] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -20,7 +31,6 @@ function CheckoutContent() {
 
   useEffect(() => {
     authAPI.addresses().then((r) => {
-      setAddresses(r.data.results || r.data);
       const defaultAddr = (r.data.results || r.data).find((a) => a.is_default);
       if (defaultAddr) {
         setForm((f) => ({
@@ -35,8 +45,54 @@ function CheckoutContent() {
         }));
       }
     });
-    orderAPI.paymentConfig().then((r) => setPaymentConfig(r.data));
+    orderAPI.paymentConfig()
+      .then((r) => {
+        setPaymentConfig(r.data);
+        if (!r.data.providers?.includes('razorpay')) {
+          setForm((current) => ({ ...current, payment_provider: 'cod' }));
+        }
+      })
+      .catch(() => setPaymentConfig({ providers: ['cod'] }));
   }, []);
+
+  const openRazorpay = async (order) => {
+    const loaded = await loadRazorpay();
+    if (!loaded) throw new Error('Could not load Razorpay checkout.');
+
+    return new Promise((resolve, reject) => {
+      const checkout = new window.Razorpay({
+        key: paymentConfig.razorpay_key_id,
+        amount: Math.round(Number(order.total) * 100),
+        currency: 'INR',
+        name: 'The Show Man',
+        description: `Order ${order.order_number}`,
+        order_id: order.payment.gateway_order_id,
+        prefill: {
+          name: form.shipping_name,
+          contact: form.shipping_phone,
+        },
+        theme: { color: '#4A0560' },
+        handler: async (response) => {
+          try {
+            await orderAPI.confirmPayment({
+              order_number: order.order_number,
+              ...response,
+            });
+            resolve();
+          } catch (error) {
+            reject(new Error(error.response?.data?.detail || 'Payment verification failed.'));
+          }
+        },
+        modal: {
+          ondismiss: () => reject(new Error('Payment was cancelled. Your order is still pending.')),
+        },
+      });
+      checkout.on('payment.failed', (response) => {
+        reject(new Error(response.error?.description || 'Payment failed.'));
+      });
+      checkout.open();
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,10 +103,12 @@ function CheckoutContent() {
       if (form.payment_provider === 'cod') {
         navigate(`/order-confirmation/${data.order_number}`);
       } else {
-        navigate(`/payment/${form.payment_provider}?order=${data.order_number}`);
+        await openRazorpay(data);
+        await fetchCart();
+        navigate(`/payment/success?order=${data.order_number}`);
       }
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Checkout failed');
+      toast.error(err.response?.data?.detail || err.message || 'Checkout failed');
     } finally {
       setLoading(false);
     }
@@ -78,7 +136,7 @@ function CheckoutContent() {
 
         <h2 style={{ marginTop: '2rem' }}>Payment Method</h2>
         <div className="payment-options">
-          {['cod', 'razorpay', 'stripe'].map((p) => (
+          {(paymentConfig?.providers || ['cod']).map((p) => (
             <label key={p} className={`payment-option ${form.payment_provider === p ? 'active' : ''}`}>
               <input
                 type="radio"
@@ -91,8 +149,11 @@ function CheckoutContent() {
             </label>
           ))}
         </div>
-        {paymentConfig && form.payment_provider !== 'cod' && (
-          <p className="payment-note">Payment gateway integration ready. Configure API keys in backend .env</p>
+        {paymentConfig && form.payment_provider === 'razorpay' && (
+          <p className="payment-note">Secure online payment powered by Razorpay.</p>
+        )}
+        {paymentConfig && !paymentConfig.providers?.includes('razorpay') && (
+          <p className="payment-note">Add Razorpay keys in the backend environment to enable online payment.</p>
         )}
       </div>
 
@@ -103,7 +164,7 @@ function CheckoutContent() {
         <div className="summary-row"><span>Tax</span><span>₹{tax.toFixed(0)}</span></div>
         <div className="summary-row total"><span>Total</span><span>₹{(subtotal + shipping + tax).toFixed(0)}</span></div>
         <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: '1.5rem' }}>
-          {loading ? 'Processing...' : 'Place Order'}
+          {loading ? 'Processing...' : form.payment_provider === 'cod' ? 'Place Order' : 'Pay Securely'}
         </button>
       </div>
     </form>

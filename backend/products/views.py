@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.db.models import Q
+from django.utils import timezone
 
 from accounts.permissions import IsAdminUser
 from products.models import (
@@ -104,10 +105,28 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Product.objects.select_related('category', 'subcategory').prefetch_related('images', 'variants', 'reviews')
-        if self.action == 'list' or self.action == 'retrieve':
-            if not (self.request.user.is_authenticated and self.request.user.is_admin_user):
-                qs = qs.filter(is_active=True)
+        admin_mutation = (
+            self.action in ['update', 'partial_update', 'destroy']
+            and self.request.user.is_authenticated
+            and self.request.user.is_admin_user
+        )
+        include_inactive = (
+            self.request.query_params.get('include_inactive') == 'true'
+            and self.request.user.is_authenticated
+            and self.request.user.is_admin_user
+        )
+        if not include_inactive and not admin_mutation:
+            qs = qs.filter(is_active=True)
         return qs
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['include_inactive'] = (
+            self.request.query_params.get('include_inactive') == 'true'
+            and self.request.user.is_authenticated
+            and self.request.user.is_admin_user
+        )
+        return context
 
     @action(detail=True, methods=['get'])
     def related(self, request, slug=None):
@@ -117,6 +136,28 @@ class ProductViewSet(viewsets.ModelViewSet):
         ).exclude(id=product.id)[:8]
         serializer = ProductListSerializer(related, many=True, context={'request': request})
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
+    def review_eligibility(self, request, slug=None):
+        from orders.models import Order, OrderItem, Payment
+        product = self.get_object()
+        eligible = OrderItem.objects.filter(
+            order__user=request.user,
+            variant__product=product,
+            order__status__in=[
+                Order.Status.CONFIRMED,
+                Order.Status.PROCESSING,
+                Order.Status.SHIPPED,
+                Order.Status.DELIVERED,
+            ],
+            order__payment__status=Payment.Status.SUCCESS,
+        ).exists()
+        already_reviewed = Review.objects.filter(product=product, user=request.user).exists()
+        return Response({
+            'eligible': eligible and not already_reviewed,
+            'purchased': eligible,
+            'already_reviewed': already_reviewed,
+        })
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):
@@ -136,11 +177,87 @@ class ProductVariantViewSet(viewsets.ModelViewSet):
             return [IsAdminUser()]
         return [IsAuthenticatedOrReadOnly()]
 
+    def get_queryset(self):
+        qs = ProductVariant.objects.select_related('product', 'size', 'color', 'inventory')
+        include_inactive = (
+            self.request.query_params.get('include_inactive') == 'true'
+            and self.request.user.is_authenticated
+            and self.request.user.is_admin_user
+        )
+        if not include_inactive:
+            qs = qs.filter(is_active=True, product__is_active=True)
+        return qs
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
+    def bulk_create(self, request):
+        product_id = request.data.get('product_id')
+        size_ids = request.data.get('size_ids') or []
+        color_ids = request.data.get('color_ids') or []
+        try:
+            quantity = max(0, int(request.data.get('quantity', 0)))
+            threshold = max(0, int(request.data.get('low_stock_threshold', 5)))
+        except (TypeError, ValueError):
+            return Response(
+                {'detail': 'Quantity and low-stock threshold must be valid numbers.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not product_id or not size_ids or not color_ids:
+            return Response(
+                {'detail': 'Select a product, at least one size, and at least one color.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({'detail': 'Product not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        sizes = {str(item.id): item for item in Size.objects.filter(id__in=size_ids)}
+        colors = {str(item.id): item for item in Color.objects.filter(id__in=color_ids)}
+        created = 0
+        updated = 0
+
+        for size_id in size_ids:
+            for color_id in color_ids:
+                size_obj = sizes.get(str(size_id))
+                color_obj = colors.get(str(color_id))
+                if not size_obj or not color_obj:
+                    continue
+                sku = f'{product.slug}-{size_obj.name}-{color_obj.name}'.upper()
+                sku = ''.join(char if char.isalnum() else '-' for char in sku)
+                sku = '-'.join(filter(None, sku.split('-')))[:50]
+                variant, was_created = ProductVariant.objects.get_or_create(
+                    product=product,
+                    size=size_obj,
+                    color=color_obj,
+                    defaults={'sku': sku, 'is_active': True},
+                )
+                if not variant.is_active:
+                    variant.is_active = True
+                    variant.save(update_fields=['is_active'])
+                inventory, _ = Inventory.objects.get_or_create(variant=variant)
+                inventory.quantity = quantity
+                inventory.low_stock_threshold = threshold
+                inventory.save(update_fields=['quantity', 'low_stock_threshold'])
+                if was_created:
+                    created += 1
+                else:
+                    updated += 1
+
+        return Response({'created': created, 'updated': updated}, status=status.HTTP_201_CREATED)
+
 
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = Inventory.objects.select_related('variant')
     serializer_class = InventorySerializer
     permission_classes = [IsAdminUser]
+
+    def perform_destroy(self, instance):
+        # An inventory row represents one complete size/color option. Removing it
+        # from inventory should remove that option everywhere, not leave a broken
+        # variant without stock data.
+        instance.variant.delete()
 
     @action(detail=False, methods=['post'])
     def cleanup(self, request):
@@ -191,7 +308,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return qs.filter(is_approved=True)
 
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
+        if self.action in ['update', 'partial_update', 'destroy', 'approve', 'reject']:
             return [IsAdminUser()]
         if self.action == 'create':
             return [IsAuthenticated()]
@@ -207,6 +324,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review.save()
         return Response(ReviewSerializer(review).data)
 
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def reject(self, request, pk=None):
+        review = self.get_object()
+        review.is_approved = False
+        review.save(update_fields=['is_approved'])
+        return Response(ReviewSerializer(review).data)
+
 
 class CouponViewSet(viewsets.ModelViewSet):
     queryset = Coupon.objects.all()
@@ -216,6 +340,26 @@ class CouponViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAdminUser()]
         return [IsAuthenticatedOrReadOnly()]
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated and self.request.user.is_admin_user:
+            return Coupon.objects.all().order_by('-valid_until')
+        return Coupon.objects.filter(is_active=True).order_by('-valid_until')
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def current(self, request):
+        now = timezone.now()
+        coupon = Coupon.objects.filter(
+            is_active=True,
+            valid_from__lte=now,
+            valid_until__gte=now,
+        ).exclude(
+            max_uses__isnull=False,
+            used_count__gte=models.F('max_uses'),
+        ).order_by('-valid_from', '-id').first()
+        if not coupon:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(CouponSerializer(coupon).data)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def validate(self, request):

@@ -131,6 +131,9 @@ REST_FRAMEWORK = {
     },
 }
 
+REST_FRAMEWORK['PAGE_SIZE'] = 12
+REST_FRAMEWORK['DEFAULT_PAGINATION_CLASS'] = 'config.pagination.FlexiblePageNumberPagination'
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(
         minutes=config('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', default=60, cast=int)

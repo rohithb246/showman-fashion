@@ -24,9 +24,9 @@ export default function Navbar() {
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/shop', label: 'Shop' },
-    { to: '/shop?is_featured=true', label: 'Collections' },
     { to: '/shop?is_new_arrival=true', label: 'New Arrivals' },
-    { to: '/shop?is_trending=true', label: 'Trending' },
+    { to: '/shop?category=accessories', label: 'Accessories' },
+    { to: '/shop?category=footwear', label: 'Shoes' },
   ];
   const currentPath = `${location.pathname}${location.search}`;
 
@@ -48,7 +48,7 @@ export default function Navbar() {
 
         <Link to="/" className="navbar-logo">
           <span className="logo-mark" aria-hidden="true">
-            <img src="/logo.png" alt="" />
+            <img src="/navbar-logo.png" alt="" />
           </span>
           <span className="logo-copy">
             <strong>The Show Man</strong>

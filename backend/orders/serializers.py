@@ -12,9 +12,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    gateway_order_id = serializers.CharField(source='transaction_id', read_only=True)
+
     class Meta:
         model = Payment
-        fields = ['id', 'provider', 'status', 'amount', 'transaction_id', 'created_at']
+        fields = ['id', 'provider', 'status', 'amount', 'transaction_id', 'gateway_order_id', 'created_at']
         read_only_fields = ['status', 'transaction_id', 'created_at']
 
 

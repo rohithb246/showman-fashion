@@ -57,4 +57,13 @@
   .cart-layout { grid-template-columns: 1fr; }
   .cart-item { flex-direction: column; text-align: center; }
   .cart-item-actions { text-align: center; }
+  .cart-summary { position: static; }
+}
+
+@media (max-width: 480px) {
+  .cart-layout { padding: 1rem 0; }
+  .cart-item, .cart-summary { padding: 1.1rem; }
+  .coupon-form { flex-direction: column; }
+  .cart-item-actions { width: 100%; }
+  .qty-controls { justify-content: center; }
 }

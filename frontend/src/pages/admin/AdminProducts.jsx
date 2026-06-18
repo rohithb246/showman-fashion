@@ -21,6 +21,8 @@ const emptyStock = {
   variant_id: '',
   size_id: '',
   color_id: '',
+  size_ids: [],
+  color_ids: [],
   sku: '',
   quantity: 0,
   low_stock_threshold: 5,
@@ -69,7 +71,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const variants = selectedProduct?.variants || [];
+  const variants = useMemo(() => selectedProduct?.variants || [], [selectedProduct]);
   const selectedVariant = useMemo(
     () => variants.find((variant) => String(variant.id) === String(stockForm.variant_id)),
     [stockForm.variant_id, variants]
@@ -77,7 +79,7 @@ export default function AdminProducts() {
 
   const loadData = async () => {
     const [productRes, categoryRes, subcategoryRes, sizeRes, colorRes] = await Promise.all([
-      productAPI.list({ page_size: 100 }),
+      productAPI.list({ page_size: 100, include_inactive: true }),
       productAPI.categories(),
       productAPI.subcategories(),
       productAPI.sizes(),
@@ -102,7 +104,7 @@ export default function AdminProducts() {
   };
 
   const editProduct = async (product) => {
-    const { data } = await productAPI.get(product.slug);
+    const { data } = await productAPI.get(product.slug, { include_inactive: true });
     setSelectedProduct(data);
     setForm({
       name: data.name,
@@ -131,6 +133,8 @@ export default function AdminProducts() {
       variant_id: variant.id,
       size_id: variant.size?.id || '',
       color_id: variant.color?.id || '',
+      size_ids: [],
+      color_ids: [],
       sku: variant.sku,
       quantity: variant.inventory?.quantity ?? 0,
       low_stock_threshold: variant.inventory?.low_stock_threshold ?? 5,
@@ -158,6 +162,19 @@ export default function AdminProducts() {
   };
 
   const saveStock = async (productId, productSlug) => {
+    if (!stockForm.variant_id && stockForm.size_ids.length && stockForm.color_ids.length) {
+      await productAPI.bulkCreateVariants({
+        product_id: productId,
+        size_ids: stockForm.size_ids,
+        color_ids: stockForm.color_ids,
+        quantity: Number(stockForm.quantity || 0),
+        low_stock_threshold: Number(stockForm.low_stock_threshold || 0),
+      });
+      return;
+    }
+    if (!stockForm.variant_id && (!stockForm.size_ids.length || !stockForm.color_ids.length)) {
+      throw new Error('Select at least one size and one color.');
+    }
     if (!stockForm.size_id || !stockForm.color_id) return;
 
     const size = sizes.find((item) => String(item.id) === String(stockForm.size_id));
@@ -215,16 +232,44 @@ export default function AdminProducts() {
       resetForm();
       toast.success('Product saved');
     } catch (error) {
-      toast.error(apiErrorMessage(error));
+      toast.error(error.message || apiErrorMessage(error));
     } finally {
       setSaving(false);
     }
   };
 
   const toggleProduct = async (product) => {
-    await productAPI.update(product.slug, { is_active: !product.is_active });
-    await loadData();
-    toast.success(product.is_active ? 'Product hidden' : 'Product visible');
+    try {
+      await productAPI.update(product.slug, { is_active: !product.is_active });
+      await loadData();
+      toast.success(product.is_active ? 'Product hidden from store' : 'Product is now visible');
+    } catch (error) {
+      toast.error(apiErrorMessage(error));
+    }
+  };
+
+  const deleteProduct = async (product) => {
+    if (!window.confirm(`Delete "${product.name}" and all of its size/color stock?`)) return;
+    try {
+      await productAPI.delete(product.slug);
+      if (selectedProduct?.id === product.id) resetForm();
+      await loadData();
+      toast.success('Product deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not delete product. It may be used in an order.');
+    }
+  };
+
+  const toggleMultiOption = (field, id) => {
+    setStockForm((current) => {
+      const values = current[field];
+      return {
+        ...current,
+        [field]: values.includes(id)
+          ? values.filter((value) => value !== id)
+          : [...values, id],
+      };
+    });
   };
 
   if (loading) return <LoadingSpinner fullPage />;
@@ -288,7 +333,7 @@ export default function AdminProducts() {
           <label><input type="checkbox" checked={form.is_trending} onChange={(e) => updateForm('is_trending', e.target.checked)} /> Trending</label>
         </div>
 
-        <div className="admin-section-title">Size and Stock</div>
+        <div className="admin-section-title">Product Options and Stock</div>
         {selectedProduct && (
           <label className="admin-select-row">
             Edit Existing Size
@@ -302,24 +347,66 @@ export default function AdminProducts() {
             </select>
           </label>
         )}
+        {!stockForm.variant_id && (
+          <div className="admin-option-builder">
+            <div>
+              <span className="admin-option-label">Select multiple sizes</span>
+              <div className="admin-option-chips">
+                {sizes.map((size) => (
+                  <button
+                    type="button"
+                    key={size.id}
+                    className={`admin-option-chip ${stockForm.size_ids.includes(size.id) ? 'active' : ''}`}
+                    onClick={() => toggleMultiOption('size_ids', size.id)}
+                  >
+                    {size.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="admin-option-label">Select multiple colors</span>
+              <div className="admin-option-chips">
+                {colors.map((color) => (
+                  <button
+                    type="button"
+                    key={color.id}
+                    className={`admin-option-chip color ${stockForm.color_ids.includes(color.id) ? 'active' : ''}`}
+                    onClick={() => toggleMultiOption('color_ids', color.id)}
+                  >
+                    <span style={{ backgroundColor: color.hex_code }} />
+                    {color.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="admin-muted">
+              Every selected size will be combined with every selected color.
+            </p>
+          </div>
+        )}
         <div className="admin-form-grid admin-form-grid-compact">
-          <label>
-            Size
-            <select className="admin-input" value={stockForm.size_id} onChange={(e) => setStockForm({ ...stockForm, size_id: e.target.value })}>
-              <option value="">Select size</option>
-              {sizes.map((size) => <option key={size.id} value={size.id}>{size.name}</option>)}
-            </select>
-          </label>
-          <label>
-            Color
-            <select className="admin-input" value={stockForm.color_id} onChange={(e) => setStockForm({ ...stockForm, color_id: e.target.value })}>
-              <option value="">Select color</option>
-              {colors.map((color) => <option key={color.id} value={color.id}>{color.name}</option>)}
-            </select>
-          </label>
+          {stockForm.variant_id && (
+            <>
+              <label>
+                Size
+                <select className="admin-input" value={stockForm.size_id} onChange={(e) => setStockForm({ ...stockForm, size_id: e.target.value })}>
+                  <option value="">Select size</option>
+                  {sizes.map((size) => <option key={size.id} value={size.id}>{size.name}</option>)}
+                </select>
+              </label>
+              <label>
+                Color
+                <select className="admin-input" value={stockForm.color_id} onChange={(e) => setStockForm({ ...stockForm, color_id: e.target.value })}>
+                  <option value="">Select color</option>
+                  {colors.map((color) => <option key={color.id} value={color.id}>{color.name}</option>)}
+                </select>
+              </label>
+            </>
+          )}
           <label>
             SKU
-            <input className="admin-input" value={stockForm.sku} onChange={(e) => setStockForm({ ...stockForm, sku: e.target.value })} placeholder="Auto if empty" />
+            <input className="admin-input" value={stockForm.sku} onChange={(e) => setStockForm({ ...stockForm, sku: e.target.value })} placeholder="Auto-generated" disabled={!stockForm.variant_id} />
           </label>
           <label>
             Quantity
@@ -331,7 +418,7 @@ export default function AdminProducts() {
           </label>
           <label className="admin-check-field">
             <input type="checkbox" checked={stockForm.is_active} onChange={(e) => setStockForm({ ...stockForm, is_active: e.target.checked })} />
-            Show Size
+            Show Option
           </label>
         </div>
 
@@ -359,6 +446,9 @@ export default function AdminProducts() {
                     <button className="btn btn-sm btn-outline" onClick={() => editProduct(product)}>Edit</button>
                     <button className="btn btn-sm btn-secondary" onClick={() => toggleProduct(product)}>
                       {product.is_active ? 'Hide' : 'Show'}
+                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteProduct(product)}>
+                      Delete
                     </button>
                   </div>
                 </td>

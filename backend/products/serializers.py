@@ -7,13 +7,29 @@ from products.models import (
 
 class CategorySerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
+    display_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'description', 'image', 'is_active', 'product_count']
+        fields = [
+            'id', 'name', 'slug', 'description', 'image', 'display_image',
+            'is_active', 'product_count',
+        ]
 
     def get_product_count(self, obj):
         return obj.products.filter(is_active=True).count()
+
+    def get_display_image(self, obj):
+        image = obj.image
+        if not image:
+            product = obj.products.filter(is_active=True, images__isnull=False).distinct().first()
+            if product:
+                product_image = product.images.filter(is_primary=True).first() or product.images.first()
+                image = product_image.image if product_image else None
+        if not image:
+            return None
+        request = self.context.get('request')
+        return request.build_absolute_uri(image.url) if request else image.url
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
@@ -47,10 +63,15 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class InventorySerializer(serializers.ModelSerializer):
     variant_sku = serializers.CharField(source='variant.sku', read_only=True)
     product_name = serializers.CharField(source='variant.product.name', read_only=True)
+    size_name = serializers.CharField(source='variant.size.name', read_only=True)
+    color_name = serializers.CharField(source='variant.color.name', read_only=True)
 
     class Meta:
         model = Inventory
-        fields = ['id', 'variant', 'variant_sku', 'product_name', 'quantity', 'low_stock_threshold', 'is_low_stock', 'in_stock']
+        fields = [
+            'id', 'variant', 'variant_sku', 'product_name', 'size_name', 'color_name',
+            'quantity', 'low_stock_threshold', 'is_low_stock', 'in_stock',
+        ]
         read_only_fields = ['is_low_stock', 'in_stock']
 
 
@@ -80,6 +101,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
+    variants = serializers.SerializerMethodField()
     effective_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     review_count = serializers.IntegerField(read_only=True)
@@ -90,7 +112,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'base_price', 'sale_price', 'effective_price',
             'primary_image', 'is_featured', 'is_new_arrival', 'is_trending',
-            'is_active', 'average_rating', 'review_count', 'category_name',
+            'is_active', 'average_rating', 'review_count', 'category_name', 'variants',
         ]
 
     def get_primary_image(self, obj):
@@ -101,6 +123,12 @@ class ProductListSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(img.image.url)
             return img.image.url
         return None
+
+    def get_variants(self, obj):
+        variants = obj.variants.select_related('size', 'color', 'inventory').filter(is_active=True)
+        if not self.context.get('include_inactive'):
+            variants = variants.filter(product__is_active=True)
+        return ProductVariantSerializer(variants, many=True, context=self.context).data
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
@@ -162,6 +190,26 @@ class ReviewSerializer(serializers.ModelSerializer):
     def get_user_name(self, obj):
         return obj.user.get_full_name() or obj.user.username
 
+    def validate_product(self, product):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return product
+        from orders.models import Order, OrderItem, Payment
+        purchased = OrderItem.objects.filter(
+            order__user=request.user,
+            variant__product=product,
+            order__status__in=[
+                Order.Status.CONFIRMED,
+                Order.Status.PROCESSING,
+                Order.Status.SHIPPED,
+                Order.Status.DELIVERED,
+            ],
+            order__payment__status=Payment.Status.SUCCESS,
+        ).exists()
+        if not purchased:
+            raise serializers.ValidationError('Only customers who purchased this product can review it.')
+        return product
+
 
 class CouponSerializer(serializers.ModelSerializer):
     class Meta:
@@ -171,6 +219,17 @@ class CouponSerializer(serializers.ModelSerializer):
             'min_order_amount', 'max_uses', 'used_count', 'is_active',
             'valid_from', 'valid_until',
         ]
+
+    def validate(self, attrs):
+        valid_from = attrs.get('valid_from', getattr(self.instance, 'valid_from', None))
+        valid_until = attrs.get('valid_until', getattr(self.instance, 'valid_until', None))
+        discount_type = attrs.get('discount_type', getattr(self.instance, 'discount_type', None))
+        discount_value = attrs.get('discount_value', getattr(self.instance, 'discount_value', None))
+        if valid_from and valid_until and valid_until <= valid_from:
+            raise serializers.ValidationError({'valid_until': 'Valid until must be after valid from.'})
+        if discount_type == Coupon.DiscountType.PERCENTAGE and discount_value and discount_value > 100:
+            raise serializers.ValidationError({'discount_value': 'Percentage discount cannot exceed 100.'})
+        return attrs
 
 
 class CouponValidateSerializer(serializers.Serializer):

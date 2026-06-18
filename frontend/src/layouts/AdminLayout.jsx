@@ -37,13 +37,13 @@ export default function AdminLayout() {
               className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
             >
               <item.icon />
-              {item.label}
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
         <div className="admin-sidebar-footer">
-          <Link to="/" className="admin-nav-link"><FiHome /> Store</Link>
-          <button className="admin-nav-link" onClick={logout}><FiLogOut /> Logout</button>
+          <Link to="/" className="admin-nav-link"><FiHome /><span>Store</span></Link>
+          <button className="admin-nav-link" onClick={logout}><FiLogOut /><span>Logout</span></button>
         </div>
       </aside>
       <div className="admin-main">

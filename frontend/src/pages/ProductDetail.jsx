@@ -22,6 +22,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [zoomed, setZoomed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [reviewEligibility, setReviewEligibility] = useState(null);
   const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', comment: '' });
 
   useEffect(() => {
@@ -29,9 +30,13 @@ export default function ProductDetail() {
     productAPI.get(slug).then((r) => {
       setProduct(r.data);
       const variants = r.data.variants || [];
-      if (variants.length) {
-        setSelectedSize(variants[0].size?.id);
-        setSelectedColor(variants[0].color?.id);
+      const firstAvailable = variants.find((variant) => variant.inventory?.in_stock);
+      if (firstAvailable) {
+        setSelectedSize(firstAvailable.size?.id);
+        setSelectedColor(firstAvailable.color?.id);
+      } else {
+        setSelectedSize(null);
+        setSelectedColor(null);
       }
     });
     productAPI.related(slug).then((r) => setRelated(r.data)).finally(() => setLoading(false));
@@ -40,8 +45,15 @@ export default function ProductDetail() {
   useEffect(() => {
     if (product?.id) {
       productAPI.reviews({ product: product.id }).then((r) => setReviews(r.data.results || r.data));
+      if (user) {
+        productAPI.reviewEligibility(slug)
+          .then((r) => setReviewEligibility(r.data))
+          .catch(() => setReviewEligibility(null));
+      } else {
+        setReviewEligibility(null);
+      }
     }
-  }, [product?.id]);
+  }, [product?.id, slug, user]);
 
   if (loading || !product) return <LoadingSpinner fullPage />;
 
@@ -55,6 +67,36 @@ export default function ProductDetail() {
 
   const sizes = [...new Map(product.variants?.map((v) => [v.size?.id, v.size])).values()].filter(Boolean);
   const colors = [...new Map(product.variants?.map((v) => [v.color?.id, v.color])).values()].filter(Boolean);
+  const sizeIsAvailable = (sizeId) => product.variants?.some(
+    (variant) => variant.size?.id === sizeId && variant.inventory?.in_stock
+  );
+  const colorIsAvailable = (colorId) => product.variants?.some(
+    (variant) => variant.color?.id === colorId && variant.inventory?.in_stock
+  );
+
+  const selectSize = (sizeId) => {
+    setSelectedSize(sizeId);
+    const matching = product.variants?.find(
+      (variant) => variant.size?.id === sizeId
+        && variant.color?.id === selectedColor
+        && variant.inventory?.in_stock
+    ) || product.variants?.find(
+      (variant) => variant.size?.id === sizeId && variant.inventory?.in_stock
+    );
+    if (matching) setSelectedColor(matching.color?.id);
+  };
+
+  const selectColor = (colorId) => {
+    setSelectedColor(colorId);
+    const matching = product.variants?.find(
+      (variant) => variant.color?.id === colorId
+        && variant.size?.id === selectedSize
+        && variant.inventory?.in_stock
+    ) || product.variants?.find(
+      (variant) => variant.color?.id === colorId && variant.inventory?.in_stock
+    );
+    if (matching) setSelectedSize(matching.size?.id);
+  };
 
   const handleAddToCart = async () => {
     if (!user) { window.location.href = '/login'; return; }
@@ -67,9 +109,14 @@ export default function ProductDetail() {
   const handleReview = async (e) => {
     e.preventDefault();
     if (!user) { window.location.href = '/login'; return; }
-    await productAPI.createReview({ product: product.id, ...reviewForm });
-    toast.success('Review submitted for approval');
-    setReviewForm({ rating: 5, title: '', comment: '' });
+    try {
+      await productAPI.createReview({ product: product.id, ...reviewForm });
+      toast.success('Review submitted for approval');
+      setReviewForm({ rating: 5, title: '', comment: '' });
+      setReviewEligibility({ purchased: true, already_reviewed: true, eligible: false });
+    } catch (error) {
+      toast.error(error.response?.data?.product?.[0] || error.response?.data?.detail || 'Could not submit review');
+    }
   };
 
   return (
@@ -127,7 +174,8 @@ export default function ProductDetail() {
                     <button
                       key={s.id}
                       className={`size-btn ${selectedSize === s.id ? 'active' : ''}`}
-                      onClick={() => setSelectedSize(s.id)}
+                      onClick={() => selectSize(s.id)}
+                      disabled={!sizeIsAvailable(s.id)}
                     >
                       {s.name}
                     </button>
@@ -140,11 +188,14 @@ export default function ProductDetail() {
                   {colors.map((c) => (
                     <button
                       key={c.id}
-                      className={`color-btn ${selectedColor === c.id ? 'active' : ''}`}
-                      style={{ background: c.hex_code }}
-                      onClick={() => setSelectedColor(c.id)}
+                      className={`color-choice ${selectedColor === c.id ? 'active' : ''}`}
+                      onClick={() => selectColor(c.id)}
+                      disabled={!colorIsAvailable(c.id)}
                       title={c.name}
-                    />
+                    >
+                      <span className="color-btn" style={{ background: c.hex_code }} />
+                      <span>{c.name}</span>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -202,7 +253,7 @@ export default function ProductDetail() {
             </div>
           )) : <p className="no-reviews">No reviews yet. Be the first!</p>}
 
-          {user && (
+          {user && reviewEligibility?.eligible && (
             <form className="review-form glass-card" onSubmit={handleReview}>
               <h3>Write a Review</h3>
               <div className="form-group">
@@ -219,6 +270,12 @@ export default function ProductDetail() {
               </div>
               <button type="submit" className="btn btn-primary">Submit Review</button>
             </form>
+          )}
+          {user && reviewEligibility?.already_reviewed && (
+            <p className="review-eligibility-note">You have already reviewed this product.</p>
+          )}
+          {user && reviewEligibility && !reviewEligibility.purchased && (
+            <p className="review-eligibility-note">Purchase this product to write a verified customer review.</p>
           )}
         </section>
 

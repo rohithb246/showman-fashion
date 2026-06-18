@@ -33,6 +33,7 @@ body {
   background: var(--white);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -96,6 +97,18 @@ input, select, textarea {
 .btn-secondary:hover {
   background: var(--purple-light);
   transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: #fff0f0;
+  border: 1px solid #e74c3c;
+  color: #b42318;
+}
+
+.btn-danger:hover {
+  background: #e74c3c;
+  color: var(--white);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
@@ -244,4 +257,6 @@ input, select, textarea {
 
 @media (max-width: 480px) {
   .grid-products { grid-template-columns: 1fr; }
+  .page-header { padding: 2rem 1rem; }
+  .btn-lg { width: 100%; padding: 0.9rem 1rem; }
 }

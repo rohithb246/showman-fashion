@@ -94,7 +94,7 @@
 .filter-toggle { display: none; }
 
 @media (max-width: 900px) {
-  .shop-layout { grid-template-columns: 1fr; }
+  .shop-layout { grid-template-columns: 1fr; padding: 1.25rem 1rem 3rem; }
   .filter-toggle { display: inline-flex; }
   .shop-filters {
     display: none;
@@ -108,4 +108,29 @@
     overflow-y: auto;
   }
   .shop-filters.open { display: block; }
+}
+
+@media (max-width: 480px) {
+  .shop-toolbar {
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .shop-toolbar > * {
+    flex: 1;
+  }
+
+  .sort-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .price-inputs {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .price-inputs span {
+    display: none;
+  }
 }

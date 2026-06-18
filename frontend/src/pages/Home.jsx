@@ -12,7 +12,7 @@ export default function Home() {
   const [newArrivals, setNewArrivals] = useState([]);
   const [trending, setTrending] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [banners, setBanners] = useState([]);
+  const [coupon, setCoupon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
 
@@ -22,13 +22,13 @@ export default function Home() {
       productAPI.newArrivals(),
       productAPI.trending(),
       productAPI.categories(),
-      productAPI.banners(),
-    ]).then(([f, n, t, c, b]) => {
+      productAPI.currentCoupon(),
+    ]).then(([f, n, t, c, couponResponse]) => {
       setFeatured(f.data.results || f.data);
       setNewArrivals(n.data.results || n.data);
       setTrending(t.data.results || t.data);
       setCategories(c.data.results || c.data);
-      setBanners(b.data.results || b.data);
+      setCoupon(couponResponse.data || null);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -40,56 +40,40 @@ export default function Home() {
 
   if (loading) return <LoadingSpinner fullPage />;
 
-  const heroBanner = banners.find((banner) => banner.banner_type === 'hero');
-  const promoBanner = banners.find((banner) => banner.banner_type === 'promo');
-  const heroTitle = heroBanner?.title || 'Command Every Stage.';
-  const heroWords = heroTitle.split(' ');
-
   return (
     <div className="home">
       <section className="hero">
-        <div
-          className="hero-bg"
-          style={heroBanner?.image ? { '--hero-image': `url(${heroBanner.image})` } : undefined}
-        />
-        <div className="container hero-content">
+        <div className="hero-bg" aria-hidden="true" />
+        <div className="hero-grid">
           <motion.div
+            className="hero-copy"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="hero-copy"
           >
-            <span className="hero-tag">{heroBanner?.subtitle || 'New Collection - The Dark Carnival'}</span>
-            <h1>
-              {heroWords.slice(0, -1).map((word, index) => (
-                <span className="hero-word" key={`${word}-${index}`}>{word}<br /></span>
-              ))}
-              <span>{heroWords.at(-1) || 'Stage.'}</span>
-            </h1>
+            <span className="hero-tag">The Signature Collection</span>
+            <h1>Own the room.<br /><span>Command the stage.</span></h1>
             <p>
-              {heroBanner?.subtitle || 'Theatrical fashion for those who live beyond the ordinary.'}
-              <br />
-              Wearable spectacle. Unapologetic presence.
+              Precision tailoring, rich textures, and unmistakable presence—
+              designed for men who never blend into the background.
             </p>
             <div className="hero-actions">
-              <Link to={heroBanner?.link || '/shop'} className="btn btn-primary btn-lg">Explore Collection</Link>
-              <Link to="/shop?is_new_arrival=true" className="btn btn-outline btn-lg hero-outline">Our Story</Link>
+              <Link to="/shop" className="btn btn-primary btn-lg">Shop Collection</Link>
+              <Link to="/shop?category=accessories" className="btn btn-outline btn-lg hero-outline">Accessories</Link>
             </div>
           </motion.div>
+
           <motion.div
-            className="hero-emblem-wrap"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            className="hero-image-col"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.9, delay: 0.15 }}
           >
-            <span className="orbit orbit-one" />
-            <span className="orbit orbit-two" />
-            <span className="orbit-dot" />
-            <img src="/logo.png" alt="The Show Man" className="hero-logo" />
-            <div className="hero-count">
-              <strong>XII</strong>
-              <span>Exclusive Pieces</span>
-            </div>
+            <img
+              src="/hero-desktop-xl.png"
+              alt="The Show Man luxury fashion model"
+              className="hero-model"
+            />
           </motion.div>
         </div>
       </section>
@@ -102,9 +86,14 @@ export default function Home() {
             {categories.map((cat, i) => (
               <motion.div key={cat.id} whileHover={{ scale: 1.03 }} transition={{ delay: i * 0.05 }}>
                 <Link to={`/shop?category=${cat.slug}`} className="category-card">
-                  <div className="category-card-bg" />
-                  <h3>{cat.name}</h3>
-                  <span>{cat.product_count} items</span>
+                  <div
+                    className="category-card-bg"
+                    style={cat.display_image ? { backgroundImage: `url(${cat.display_image})` } : undefined}
+                  />
+                  <div className="category-card-copy">
+                    <h3>{cat.name}</h3>
+                    <span>{cat.product_count} items</span>
+                  </div>
                 </Link>
               </motion.div>
             ))}
@@ -112,23 +101,29 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section promo-banner">
-        <div
-          className="container glass-card promo-inner"
-          style={promoBanner?.image ? { '--promo-image': `url(${promoBanner.image})` } : undefined}
-        >
-          <div>
-            <span className="badge badge-gold">Limited Offer</span>
-            <h2>{promoBanner?.title || 'Extra 20% Off with SHOWMAN20'}</h2>
-            <p>{promoBanner?.subtitle || 'Use code SHOWMAN20 on orders above Rs 2,000'}</p>
+      {coupon && (
+        <section className="section promo-banner">
+          <div className="container glass-card promo-inner">
+            <div>
+              <span className="badge badge-gold">Limited Offer</span>
+              <h2>
+                {coupon.discount_type === 'percentage'
+                  ? `${Number(coupon.discount_value)}% off`
+                  : `₹${Number(coupon.discount_value).toLocaleString()} off`}
+                {' '}with {coupon.code}
+              </h2>
+              <p>
+                {coupon.description || `Valid on orders above ₹${Number(coupon.min_order_amount).toLocaleString()}`}
+              </p>
+            </div>
+            <Link to="/shop" className="btn btn-secondary">Shop Now</Link>
           </div>
-          <Link to={promoBanner?.link || '/shop'} className="btn btn-secondary">Shop Now</Link>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <ProductSection title="Featured Collections" subtitle="Handpicked Luxury" products={featured} />
-      <ProductSection title="New Arrivals" subtitle="Just Landed" products={newArrivals} />
-      <ProductSection title="Trending Now" subtitle="Most Loved" products={trending} />
+      <ProductSection title="New Arrivals" subtitle="Just Landed" products={newArrivals} link="/shop?is_new_arrival=true" />
+      <ProductSection title="Featured Collection" subtitle="Handpicked Luxury" products={featured} link="/shop?is_featured=true" />
+      <ProductSection title="Trending Now" subtitle="Most Loved" products={trending} link="/shop?is_trending=true" />
 
       <section className="section testimonials">
         <div className="container">
@@ -173,7 +168,7 @@ export default function Home() {
   );
 }
 
-function ProductSection({ title, subtitle, products }) {
+function ProductSection({ title, subtitle, products, link }) {
   if (!products?.length) return null;
   return (
     <section className="section">
@@ -186,7 +181,7 @@ function ProductSection({ title, subtitle, products }) {
           ))}
         </div>
         <div className="section-cta">
-          <Link to="/shop" className="btn btn-outline">View All</Link>
+          <Link to={link} className="btn btn-outline">View All</Link>
         </div>
       </div>
     </section>

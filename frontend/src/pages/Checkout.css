@@ -50,4 +50,11 @@
 
 @media (max-width: 768px) {
   .checkout-layout { grid-template-columns: 1fr; }
+  .checkout-summary { position: static; }
+}
+
+@media (max-width: 480px) {
+  .checkout-layout { gap: 1.25rem; padding: 1rem 0; }
+  .checkout-summary { padding: 1.25rem; }
+  .payment-option { padding: 0.85rem 1rem; }
 }

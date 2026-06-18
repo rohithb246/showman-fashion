@@ -12,7 +12,15 @@ from products.models import ProductVariant
 
 def get_or_create_cart(user):
     cart, _ = Cart.objects.get_or_create(user=user)
+    cart.items.filter(
+        product_variant_is_invalid_filter()
+    ).delete()
     return cart
+
+
+def product_variant_is_invalid_filter():
+    from django.db.models import Q
+    return Q(variant__is_active=False) | Q(variant__product__is_active=False)
 
 
 class CartView(APIView):
@@ -45,7 +53,11 @@ class CartItemView(APIView):
             return Response({'detail': 'Quantity must be at least 1.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            variant = ProductVariant.objects.select_related('inventory').get(id=variant_id, is_active=True)
+            variant = ProductVariant.objects.select_related('inventory', 'product').get(
+                id=variant_id,
+                is_active=True,
+                product__is_active=True,
+            )
         except ProductVariant.DoesNotExist:
             return Response({'detail': 'Variant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -110,7 +122,10 @@ class WishlistView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        items = Wishlist.objects.filter(user=request.user).select_related('product')
+        items = Wishlist.objects.filter(
+            user=request.user,
+            product__is_active=True,
+        ).select_related('product')
         return Response(WishlistSerializer(items, many=True, context={'request': request}).data)
 
     def post(self, request):

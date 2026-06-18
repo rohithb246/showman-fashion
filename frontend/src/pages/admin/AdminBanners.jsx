@@ -18,6 +18,14 @@ function bannerFormData(form, imageFile) {
   return data;
 }
 
+function bannerError(error) {
+  const data = error.response?.data;
+  if (!data) return 'Could not save banner';
+  if (data.detail) return data.detail;
+  const key = Object.keys(data)[0];
+  return `${key}: ${Array.isArray(data[key]) ? data[key].join(', ') : data[key]}`;
+}
+
 export default function AdminBanners() {
   const [banners, setBanners] = useState([]);
   const [form, setForm] = useState(emptyBanner);
@@ -71,8 +79,8 @@ export default function AdminBanners() {
       await loadBanners();
       resetForm();
       toast.success('Banner saved');
-    } catch {
-      toast.error('Could not save banner');
+    } catch (error) {
+      toast.error(bannerError(error));
     } finally {
       setSaving(false);
     }
@@ -80,9 +88,31 @@ export default function AdminBanners() {
 
   const deleteBanner = async (banner) => {
     if (!window.confirm(`Delete banner "${banner.title}"?`)) return;
-    await productAPI.deleteBanner(banner.id);
-    await loadBanners();
-    toast.success('Banner deleted');
+    try {
+      await productAPI.deleteBanner(banner.id);
+      await loadBanners();
+      toast.success('Banner deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not delete banner');
+    }
+  };
+
+  const toggleBanner = async (banner) => {
+    try {
+      const data = bannerFormData({
+        title: banner.title,
+        subtitle: banner.subtitle || '',
+        link: banner.link || '',
+        banner_type: banner.banner_type,
+        is_active: !banner.is_active,
+        sort_order: banner.sort_order,
+      });
+      await productAPI.updateBanner(banner.id, data);
+      await loadBanners();
+      toast.success(banner.is_active ? 'Banner hidden' : 'Banner shown');
+    } catch (error) {
+      toast.error(bannerError(error));
+    }
   };
 
   return (
@@ -150,7 +180,10 @@ export default function AdminBanners() {
                 <td>
                   <div className="admin-actions">
                     <button className="btn btn-sm btn-outline" onClick={() => editBanner(banner)}>Edit</button>
-                    <button className="btn btn-sm btn-secondary" onClick={() => deleteBanner(banner)}>Delete</button>
+                    <button className="btn btn-sm btn-secondary" onClick={() => toggleBanner(banner)}>
+                      {banner.is_active ? 'Hide' : 'Show'}
+                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteBanner(banner)}>Delete</button>
                   </div>
                 </td>
               </tr>

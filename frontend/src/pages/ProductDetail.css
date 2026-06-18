@@ -101,7 +101,32 @@
   color: var(--gold);
 }
 
+.size-btn:disabled,
+.color-choice:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.color-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--purple);
+  font-size: 0.8rem;
+}
+
+.color-choice.active {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 2px rgba(74, 5, 96, 0.12);
+}
+
 .color-btn {
+  display: block;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -109,7 +134,10 @@
   transition: all 0.3s;
 }
 
-.color-btn.active { border-color: var(--gold); box-shadow: 0 0 0 2px var(--purple); }
+.color-choice .color-btn {
+  width: 22px;
+  height: 22px;
+}
 
 .quantity-selector {
   display: flex;
@@ -158,9 +186,33 @@
 .review-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
 .review-form { padding: 2rem; margin-top: 2rem; }
 .review-form h3 { color: var(--purple); margin-bottom: 1rem; }
+.review-eligibility-note {
+  margin-top: 1.25rem;
+  padding: 1rem 1.2rem;
+  border-left: 4px solid var(--gold);
+  background: rgba(255, 215, 0, 0.08);
+  color: var(--purple);
+  font-size: 0.9rem;
+}
 
 .related-section { padding-top: 2rem; border-top: 1px solid var(--gray-200); }
 
 @media (max-width: 768px) {
   .product-detail-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .main-image { max-height: 70vh; }
+  .thumbnail-list { overflow-x: auto; padding-bottom: 0.35rem; }
+  .thumb { flex: 0 0 64px; height: 80px; }
+  .quantity-selector { align-items: flex-start; flex-wrap: wrap; }
+  .product-actions .btn { flex: 1 1 220px; }
+}
+
+@media (max-width: 480px) {
+  .product-detail { padding-top: 1rem; }
+  .breadcrumb { margin-bottom: 1rem; }
+  .product-detail-grid { gap: 1.25rem; }
+  .product-details h1 { font-size: 1.8rem; }
+  .product-price-large { font-size: 1.4rem; }
+  .product-actions { flex-direction: column; }
+  .product-actions .btn { flex-basis: auto; width: 100%; }
+  .review-form { padding: 1.2rem; }
 }

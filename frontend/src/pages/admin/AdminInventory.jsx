@@ -71,6 +71,17 @@ export default function AdminInventory() {
     }
   };
 
+  const deleteItem = async (item) => {
+    if (!window.confirm(`Delete ${item.product_name} — ${item.size_name} / ${item.color_name}?`)) return;
+    try {
+      await productAPI.deleteInventory(item.id);
+      await loadInventory();
+      toast.success('Stock option deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not delete stock option');
+    }
+  };
+
   return (
     <div>
       <div className="admin-page-header">
@@ -86,13 +97,13 @@ export default function AdminInventory() {
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
-            <tr><th>SKU</th><th>Product</th><th>Quantity</th><th>Threshold</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>SKU</th><th>Product / Option</th><th>Quantity</th><th>Threshold</th><th>Status</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {visibleItems.map((item) => (
               <tr key={item.id}>
                 <td><strong>{item.variant_sku || 'N/A'}</strong></td>
-                <td>{item.product_name}</td>
+                <td>{item.product_name}<br /><span className="admin-muted">{item.size_name} / {item.color_name}</span></td>
                 <td>
                   <input
                     className="admin-input admin-number-input"
@@ -119,9 +130,12 @@ export default function AdminInventory() {
                   )}
                 </td>
                 <td>
-                  <button className="btn btn-sm btn-outline" onClick={() => saveItem(item)} disabled={savingId === item.id}>
-                    {savingId === item.id ? 'Saving...' : 'Save'}
-                  </button>
+                  <div className="admin-actions">
+                    <button className="btn btn-sm btn-outline" onClick={() => saveItem(item)} disabled={savingId === item.id}>
+                      {savingId === item.id ? 'Saving...' : 'Save'}
+                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteItem(item)}>Delete</button>
+                  </div>
                 </td>
               </tr>
             ))}

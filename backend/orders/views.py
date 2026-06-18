@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from accounts.permissions import IsAdminUser
 from orders.models import Order
 from orders.serializers import OrderSerializer, CreateOrderSerializer
-from orders.services import process_checkout, confirm_payment, get_payment_config
+from orders.services import process_checkout, confirm_payment, get_payment_config, restore_order_inventory
 
 
 class CheckoutView(APIView):
@@ -37,6 +37,8 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
         order = self.get_object()
         new_status = request.data.get('status')
         if new_status in Order.Status.values:
+            if new_status == Order.Status.CANCELLED and order.status != Order.Status.CANCELLED:
+                restore_order_inventory(order)
             order.status = new_status
             if request.data.get('tracking_number'):
                 order.tracking_number = request.data['tracking_number']
@@ -51,6 +53,7 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'detail': 'Not allowed.'}, status=status.HTTP_403_FORBIDDEN)
         if order.status not in [Order.Status.PENDING, Order.Status.CONFIRMED]:
             return Response({'detail': 'Cannot cancel this order.'}, status=status.HTTP_400_BAD_REQUEST)
+        restore_order_inventory(order)
         order.status = Order.Status.CANCELLED
         order.save()
         return Response(OrderSerializer(order).data)
@@ -65,15 +68,13 @@ class PaymentConfirmView(APIView):
             order = confirm_payment(
                 request.user,
                 order_number,
-                request.data.get('transaction_id', ''),
-                request.data.get('success', False),
                 request.data,
             )
-            if order.payment.status == 'success':
-                return Response({'detail': 'Payment successful.', 'order': OrderSerializer(order).data})
-            return Response({'detail': 'Payment failed.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Payment successful.', 'order': OrderSerializer(order).data})
         except Order.DoesNotExist:
             return Response({'detail': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PaymentConfigView(APIView):

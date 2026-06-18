@@ -1,44 +1,80 @@
-import { useState, useEffect } from 'react';
-import { productAPI } from '../../services/api';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { productAPI } from '../../services/api';
 
 export default function AdminReviews() {
   const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const load = () => productAPI.reviews().then((r) => setReviews(r.data.results || r.data));
-  useEffect(() => { load(); }, []);
-
-  const approve = async (id) => {
-    await productAPI.approveReview(id);
-    toast.success('Review approved');
-    load();
+  const load = async () => {
+    const { data } = await productAPI.reviews();
+    setReviews(data.results || data);
   };
 
-  const remove = async (id) => {
-    await productAPI.deleteReview(id);
-    toast.success('Review deleted');
-    load();
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+  }, []);
+
+  const setApproval = async (review, approved) => {
+    try {
+      if (approved) await productAPI.approveReview(review.id);
+      else await productAPI.rejectReview(review.id);
+      await load();
+      toast.success(approved ? 'Review approved and published' : 'Review hidden');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not update review');
+    }
   };
+
+  const remove = async (review) => {
+    if (!window.confirm(`Delete review from ${review.user_name}?`)) return;
+    try {
+      await productAPI.deleteReview(review.id);
+      await load();
+      toast.success('Review deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not delete review');
+    }
+  };
+
+  if (loading) return <LoadingSpinner fullPage />;
 
   return (
     <div>
-      <h1 className="admin-page-title">Review Management</h1>
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Review Management</h1>
+          <p className="admin-page-subtitle">Approve, hide, or permanently delete customer reviews.</p>
+        </div>
+      </div>
       <div className="admin-table-wrap">
         <table className="admin-table">
-          <thead><tr><th>User</th><th>Rating</th><th>Comment</th><th>Approved</th><th>Actions</th></tr></thead>
+          <thead><tr><th>User</th><th>Rating</th><th>Review</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
-            {reviews.map((r) => (
-              <tr key={r.id}>
-                <td>{r.user_name}</td>
-                <td>{'★'.repeat(r.rating)}</td>
-                <td>{r.comment?.slice(0, 50)}...</td>
-                <td>{r.is_approved ? 'Yes' : 'No'}</td>
+            {reviews.map((review) => (
+              <tr key={review.id}>
+                <td>{review.user_name}</td>
+                <td><span className="admin-stars">{'★'.repeat(review.rating)}</span></td>
+                <td><strong>{review.title}</strong><br /><span className="admin-muted">{review.comment}</span></td>
                 <td>
-                  {!r.is_approved && <button className="btn btn-sm btn-primary" onClick={() => approve(r.id)}>Approve</button>}
-                  <button className="btn btn-sm btn-outline" onClick={() => remove(r.id)}>Delete</button>
+                  {review.is_approved
+                    ? <span className="badge badge-gold">Published</span>
+                    : <span className="badge badge-sale">Pending</span>}
+                </td>
+                <td>
+                  <div className="admin-actions">
+                    {review.is_approved ? (
+                      <button className="btn btn-sm btn-outline" onClick={() => setApproval(review, false)}>Hide</button>
+                    ) : (
+                      <button className="btn btn-sm btn-primary" onClick={() => setApproval(review, true)}>Approve</button>
+                    )}
+                    <button className="btn btn-sm btn-danger" onClick={() => remove(review)}>Delete</button>
+                  </div>
                 </td>
               </tr>
             ))}
+            {!reviews.length && <tr><td colSpan="5">No reviews found.</td></tr>}
           </tbody>
         </table>
       </div>

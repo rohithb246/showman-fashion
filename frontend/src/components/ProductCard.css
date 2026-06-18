@@ -4,11 +4,12 @@
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.3s;
+  height: 100%;
 }
 
 .product-card:hover { box-shadow: var(--shadow-lg); }
 
-.product-card-link { display: block; }
+.product-card-link { display: flex; flex-direction: column; height: 100%; }
 
 .product-image-wrap {
   position: relative;
@@ -42,9 +43,22 @@
   position: absolute;
   top: 12px;
   left: 12px;
+  width: auto;
+  height: auto;
+  max-width: calc(100% - 24px);
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
-.new-badge { top: auto; bottom: 12px; }
+.product-image-wrap .new-badge {
+  top: 12px;
+  bottom: auto;
+  left: 12px;
+}
+
+.product-image-wrap .badge-sale + .new-badge {
+  top: 44px;
+}
 
 .wishlist-btn {
   position: absolute;
@@ -60,21 +74,15 @@
   justify-content: center;
   color: var(--purple);
   font-size: 1rem;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.3s;
-}
-
-.product-card:hover .wishlist-btn,
-.wishlist-btn.active {
   opacity: 1;
   transform: scale(1);
+  transition: all 0.3s;
 }
 
 .wishlist-btn.active { color: #e74c3c; }
 .wishlist-btn:hover { background: var(--gold); }
 
-.product-info { padding: 1.25rem; }
+.product-info { padding: 1.1rem; display: flex; flex-direction: column; flex: 1; }
 
 .product-category {
   font-size: 0.7rem;
@@ -119,3 +127,53 @@
 }
 
 .product-rating span { color: var(--gray-500); margin-left: 0.25rem; }
+
+.card-colors {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 24px;
+  margin-top: 0.75rem;
+}
+
+.card-color {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--gray-300);
+}
+
+.more-colors {
+  color: var(--gray-500);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.quick-add-btn {
+  width: 100%;
+  margin-top: auto;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius);
+  background: var(--purple);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: var(--transition);
+}
+
+.quick-add-btn:hover:not(:disabled) {
+  background: var(--purple-light);
+  transform: translateY(-1px);
+}
+
+.quick-add-btn:disabled {
+  background: var(--gray-200);
+  color: var(--gray-500);
+  cursor: not-allowed;
+}

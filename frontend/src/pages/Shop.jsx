@@ -16,6 +16,7 @@ export default function Shop() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const params = Object.fromEntries(searchParams.entries());
+  const queryKey = searchParams.toString();
 
   useEffect(() => {
     productAPI.categories().then((r) => setCategories(r.data.results || r.data));
@@ -24,24 +25,25 @@ export default function Shop() {
   }, []);
 
   useEffect(() => {
+    const requestParams = Object.fromEntries(new URLSearchParams(queryKey).entries());
     setLoading(true);
     productAPI.list({
-      search: params.search,
-      category: params.category,
-      size: params.size,
-      color: params.color,
-      min_price: params.min_price,
-      max_price: params.max_price,
-      is_featured: params.is_featured,
-      is_new_arrival: params.is_new_arrival,
-      is_trending: params.is_trending,
-      ordering: params.ordering || '-created_at',
-      page: params.page || 1,
+      search: requestParams.search,
+      category: requestParams.category,
+      size: requestParams.size,
+      color: requestParams.color,
+      min_price: requestParams.min_price,
+      max_price: requestParams.max_price,
+      is_featured: requestParams.is_featured,
+      is_new_arrival: requestParams.is_new_arrival,
+      is_trending: requestParams.is_trending,
+      ordering: requestParams.ordering || '-created_at',
+      page: requestParams.page || 1,
     }).then((r) => {
       setProducts(r.data.results || r.data);
       setTotalCount(r.data.count || (r.data.results || r.data).length);
     }).finally(() => setLoading(false));
-  }, [searchParams]);
+  }, [queryKey]);
 
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);

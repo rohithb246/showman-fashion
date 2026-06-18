@@ -38,4 +38,22 @@
 
 @media (max-width: 768px) {
   .dashboard-layout { grid-template-columns: 1fr; }
+  .dashboard-sidebar {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding: 0.75rem;
+  }
+  .dashboard-sidebar h3 { display: none; }
+  .dash-tab {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-layout { gap: 1rem; padding: 1rem 0; }
+  .order-header { align-items: flex-start; gap: 0.75rem; }
 }

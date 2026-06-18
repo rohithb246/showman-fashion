@@ -40,6 +40,17 @@ function DashboardContent() {
     toast.success('Address added');
   };
 
+  const cancelOrder = async (orderId) => {
+    try {
+      await orderAPI.cancel(orderId);
+      const { data } = await orderAPI.list();
+      setOrders(data.results || data);
+      toast.success('Order cancelled');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not cancel order');
+    }
+  };
+
   return (
     <div className="dashboard-layout">
       <aside className="dashboard-sidebar glass-card">
@@ -64,6 +75,11 @@ function DashboardContent() {
                 </div>
                 <p>{new Date(o.created_at).toLocaleDateString()} — ₹{Number(o.total).toLocaleString()}</p>
                 <p>{o.items?.length} item(s)</p>
+                {['pending', 'confirmed'].includes(o.status) && (
+                  <button className="btn btn-outline btn-sm" onClick={() => cancelOrder(o.id)}>
+                    Cancel Order
+                  </button>
+                )}
               </div>
             )) : <p className="empty-text">No orders yet</p>}
           </div>

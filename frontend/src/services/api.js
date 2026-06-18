@@ -60,7 +60,7 @@ export const authAPI = {
 
 export const productAPI = {
   list: (params) => api.get('/products/', { params }),
-  get: (slug) => api.get(`/products/${slug}/`),
+  get: (slug, params) => api.get(`/products/${slug}/`, { params }),
   related: (slug) => api.get(`/products/${slug}/related/`),
   categories: () => api.get('/products/categories/'),
   subcategories: (params) => api.get('/products/subcategories/', { params }),
@@ -69,6 +69,7 @@ export const productAPI = {
   banners: () => api.get('/products/banners/'),
   reviews: (params) => api.get('/products/reviews/', { params }),
   createReview: (data) => api.post('/products/reviews/', data),
+  reviewEligibility: (slug) => api.get(`/products/${slug}/review_eligibility/`),
   featured: () => api.get('/products/', { params: { is_featured: true } }),
   newArrivals: () => api.get('/products/', { params: { is_new_arrival: true } }),
   trending: () => api.get('/products/', { params: { is_trending: true } }),
@@ -78,14 +79,17 @@ export const productAPI = {
   variants: (params) => api.get('/products/variants/', { params }),
   createVariant: (data) => api.post('/products/variants/', data),
   updateVariant: (id, data) => api.patch(`/products/variants/${id}/`, data),
+  bulkCreateVariants: (data) => api.post('/products/variants/bulk_create/', data),
   createImage: (data) => api.post('/products/images/', data),
   updateImage: (id, data) => api.patch(`/products/images/${id}/`, data),
   inventory: () => api.get('/products/inventory/'),
   createInventory: (data) => api.post('/products/inventory/', data),
   updateInventory: (id, data) => api.patch(`/products/inventory/${id}/`, data),
+  deleteInventory: (id) => api.delete(`/products/inventory/${id}/`),
   cleanupInventory: () => api.post('/products/inventory/cleanup/'),
   lowStock: () => api.get('/products/inventory/low_stock/'),
   coupons: () => api.get('/products/coupons/'),
+  currentCoupon: () => api.get('/products/coupons/current/'),
   coupon: (id) => api.get(`/products/coupons/${id}/`),
   createCoupon: (data) => api.post('/products/coupons/', data),
   updateCoupon: (id, data) => api.patch(`/products/coupons/${id}/`, data),
@@ -95,6 +99,7 @@ export const productAPI = {
   updateBanner: (id, data) => api.patch(`/products/banners/${id}/`, data),
   deleteBanner: (id) => api.delete(`/products/banners/${id}/`),
   approveReview: (id) => api.post(`/products/reviews/${id}/approve/`),
+  rejectReview: (id) => api.post(`/products/reviews/${id}/reject/`),
   deleteReview: (id) => api.delete(`/products/reviews/${id}/`),
 };
 
@@ -127,6 +132,7 @@ export const adminAPI = {
   updateUser: (id, data) => api.patch(`/auth/admin/users/${id}/`, data),
   contacts: () => api.get('/core/admin/contacts/'),
   updateContact: (id, data) => api.patch(`/core/admin/contacts/${id}/`, data),
+  deleteContact: (id) => api.delete(`/core/admin/contacts/${id}/`),
 };
 
 export const coreAPI = {
