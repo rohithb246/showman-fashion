@@ -10,6 +10,9 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 
@@ -73,11 +76,24 @@ export const productAPI = {
   update: (slug, data) => api.patch(`/products/${slug}/`, data),
   delete: (slug) => api.delete(`/products/${slug}/`),
   variants: (params) => api.get('/products/variants/', { params }),
+  createVariant: (data) => api.post('/products/variants/', data),
+  updateVariant: (id, data) => api.patch(`/products/variants/${id}/`, data),
+  createImage: (data) => api.post('/products/images/', data),
+  updateImage: (id, data) => api.patch(`/products/images/${id}/`, data),
   inventory: () => api.get('/products/inventory/'),
+  createInventory: (data) => api.post('/products/inventory/', data),
+  updateInventory: (id, data) => api.patch(`/products/inventory/${id}/`, data),
+  cleanupInventory: () => api.post('/products/inventory/cleanup/'),
   lowStock: () => api.get('/products/inventory/low_stock/'),
   coupons: () => api.get('/products/coupons/'),
+  coupon: (id) => api.get(`/products/coupons/${id}/`),
   createCoupon: (data) => api.post('/products/coupons/', data),
+  updateCoupon: (id, data) => api.patch(`/products/coupons/${id}/`, data),
+  deleteCoupon: (id) => api.delete(`/products/coupons/${id}/`),
   validateCoupon: (code) => api.post('/products/coupons/validate/', { code }),
+  createBanner: (data) => api.post('/products/banners/', data),
+  updateBanner: (id, data) => api.patch(`/products/banners/${id}/`, data),
+  deleteBanner: (id) => api.delete(`/products/banners/${id}/`),
   approveReview: (id) => api.post(`/products/reviews/${id}/approve/`),
   deleteReview: (id) => api.delete(`/products/reviews/${id}/`),
 };

@@ -90,7 +90,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'base_price', 'sale_price', 'effective_price',
             'primary_image', 'is_featured', 'is_new_arrival', 'is_trending',
-            'average_rating', 'review_count', 'category_name',
+            'is_active', 'average_rating', 'review_count', 'category_name',
         ]
 
     def get_primary_image(self, obj):
@@ -104,8 +104,8 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True, read_only=True)
-    variants = ProductVariantSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField()
+    variants = serializers.SerializerMethodField()
     category = CategorySerializer(read_only=True)
     subcategory = SubCategorySerializer(read_only=True)
     effective_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -129,6 +129,23 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+    def _is_admin_request(self):
+        request = self.context.get('request')
+        return bool(
+            request
+            and request.user.is_authenticated
+            and getattr(request.user, 'is_admin_user', False)
+        )
+
+    def get_images(self, obj):
+        return ProductImageSerializer(obj.images.all(), many=True, context=self.context).data
+
+    def get_variants(self, obj):
+        variants = obj.variants.select_related('size', 'color', 'inventory')
+        if not self._is_admin_request():
+            variants = variants.filter(is_active=True)
+        return ProductVariantSerializer(variants, many=True, context=self.context).data
 
 
 class ReviewSerializer(serializers.ModelSerializer):

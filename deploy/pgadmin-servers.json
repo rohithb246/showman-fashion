@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "The Show Man PostgreSQL",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "showman_fashion",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    }
+  }
+}

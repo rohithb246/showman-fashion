@@ -12,6 +12,7 @@ export default function Home() {
   const [newArrivals, setNewArrivals] = useState([]);
   const [trending, setTrending] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
 
@@ -21,11 +22,13 @@ export default function Home() {
       productAPI.newArrivals(),
       productAPI.trending(),
       productAPI.categories(),
-    ]).then(([f, n, t, c]) => {
+      productAPI.banners(),
+    ]).then(([f, n, t, c, b]) => {
       setFeatured(f.data.results || f.data);
       setNewArrivals(n.data.results || n.data);
       setTrending(t.data.results || t.data);
       setCategories(c.data.results || c.data);
+      setBanners(b.data.results || b.data);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -37,10 +40,18 @@ export default function Home() {
 
   if (loading) return <LoadingSpinner fullPage />;
 
+  const heroBanner = banners.find((banner) => banner.banner_type === 'hero');
+  const promoBanner = banners.find((banner) => banner.banner_type === 'promo');
+  const heroTitle = heroBanner?.title || 'Command Every Stage.';
+  const heroWords = heroTitle.split(' ');
+
   return (
     <div className="home">
       <section className="hero">
-        <div className="hero-bg" />
+        <div
+          className="hero-bg"
+          style={heroBanner?.image ? { '--hero-image': `url(${heroBanner.image})` } : undefined}
+        />
         <div className="container hero-content">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -48,21 +59,20 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="hero-copy"
           >
-            <span className="hero-tag">New Collection - The Dark Carnival</span>
+            <span className="hero-tag">{heroBanner?.subtitle || 'New Collection - The Dark Carnival'}</span>
             <h1>
-              Command
-              <br />
-              Every
-              <br />
-              <span>Stage.</span>
+              {heroWords.slice(0, -1).map((word, index) => (
+                <span className="hero-word" key={`${word}-${index}`}>{word}<br /></span>
+              ))}
+              <span>{heroWords.at(-1) || 'Stage.'}</span>
             </h1>
             <p>
-              Theatrical fashion for those who live beyond the ordinary.
+              {heroBanner?.subtitle || 'Theatrical fashion for those who live beyond the ordinary.'}
               <br />
               Wearable spectacle. Unapologetic presence.
             </p>
             <div className="hero-actions">
-              <Link to="/shop" className="btn btn-primary btn-lg">Explore Collection</Link>
+              <Link to={heroBanner?.link || '/shop'} className="btn btn-primary btn-lg">Explore Collection</Link>
               <Link to="/shop?is_new_arrival=true" className="btn btn-outline btn-lg hero-outline">Our Story</Link>
             </div>
           </motion.div>
@@ -103,13 +113,16 @@ export default function Home() {
       </section>
 
       <section className="section promo-banner">
-        <div className="container glass-card promo-inner">
+        <div
+          className="container glass-card promo-inner"
+          style={promoBanner?.image ? { '--promo-image': `url(${promoBanner.image})` } : undefined}
+        >
           <div>
             <span className="badge badge-gold">Limited Offer</span>
-            <h2>Extra 20% Off with SHOWMAN20</h2>
-            <p>Use code SHOWMAN20 on orders above ₹2,000</p>
+            <h2>{promoBanner?.title || 'Extra 20% Off with SHOWMAN20'}</h2>
+            <p>{promoBanner?.subtitle || 'Use code SHOWMAN20 on orders above Rs 2,000'}</p>
           </div>
-          <Link to="/shop" className="btn btn-secondary">Shop Now</Link>
+          <Link to={promoBanner?.link || '/shop'} className="btn btn-secondary">Shop Now</Link>
         </div>
       </section>
 

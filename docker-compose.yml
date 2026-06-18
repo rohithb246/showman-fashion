@@ -12,6 +12,21 @@ services:
     ports:
       - "5432:5432"
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@theshowman.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./deploy/pgadmin-servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
   backend:
     build:
       context: ./backend
@@ -24,6 +39,14 @@ services:
       - "8000:8000"
     env_file:
       - ./backend/.env
+    environment:
+      USE_SQLITE: "False"
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: showman_fashion
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: "5432"
     depends_on:
       - db
 
@@ -38,4 +61,5 @@ services:
 
 volumes:
   postgres_data:
+  pgadmin_data:
   media_data:

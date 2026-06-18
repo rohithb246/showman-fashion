@@ -24,6 +24,13 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'role', 'email_verified', 'date_joined']
 
 
+class AdminUserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_blocked']
+        read_only_fields = ['id']
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)

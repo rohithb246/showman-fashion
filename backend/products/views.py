@@ -142,6 +142,36 @@ class InventoryViewSet(viewsets.ModelViewSet):
     serializer_class = InventorySerializer
     permission_classes = [IsAdminUser]
 
+    @action(detail=False, methods=['post'])
+    def cleanup(self, request):
+        created = 0
+        duplicate_groups = 0
+
+        for variant in ProductVariant.objects.filter(inventory__isnull=True):
+            Inventory.objects.create(variant=variant, quantity=0, low_stock_threshold=5)
+            created += 1
+
+        # The model enforces one inventory row per variant, but this also repairs
+        # databases that were edited manually before the constraint existed.
+        duplicate_variant_ids = (
+            Inventory.objects.values('variant_id')
+            .annotate(total=models.Count('id'))
+            .filter(total__gt=1)
+        )
+        for row in duplicate_variant_ids:
+            items = list(Inventory.objects.filter(variant_id=row['variant_id']).order_by('-updated_at', '-id'))
+            keeper = items[0]
+            keeper.quantity = sum(item.quantity for item in items)
+            keeper.low_stock_threshold = min(item.low_stock_threshold for item in items)
+            keeper.save(update_fields=['quantity', 'low_stock_threshold'])
+            Inventory.objects.filter(id__in=[item.id for item in items[1:]]).delete()
+            duplicate_groups += 1
+
+        return Response({
+            'created_missing_inventory': created,
+            'deduplicated_variant_groups': duplicate_groups,
+        })
+
     @action(detail=False, methods=['get'])
     def low_stock(self, request):
         items = self.queryset.filter(quantity__lte=models.F('low_stock_threshold'))

@@ -11,9 +11,13 @@
   position: absolute;
   inset: 0;
   background:
+    linear-gradient(90deg, rgba(26, 0, 31, 0.92), rgba(36, 0, 43, 0.64), rgba(48, 0, 52, 0.78)),
+    var(--hero-image, none),
     radial-gradient(circle at 76% 58%, rgba(93, 8, 109, 0.36) 0 22%, transparent 52%),
     radial-gradient(circle at 36% 74%, rgba(255, 215, 0, 0.08) 0 12%, transparent 42%),
     linear-gradient(90deg, #1a001f 0%, #24002b 48%, #300034 100%);
+  background-position: center;
+  background-size: cover;
 }
 
 .hero-bg::before {
@@ -62,6 +66,10 @@
 
 .hero h1 span {
   color: var(--gold);
+}
+
+.hero h1 .hero-word {
+  color: #fff8df;
 }
 
 .hero p {
@@ -227,12 +235,19 @@
 .promo-banner { padding: 2rem 0; }
 
 .promo-inner {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 2.5rem 3rem;
   gap: 2rem;
-  background: linear-gradient(135deg, rgba(74, 5, 96, 0.05), rgba(255, 215, 0, 0.08)) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.82)),
+    var(--promo-image, none),
+    linear-gradient(135deg, rgba(74, 5, 96, 0.05), rgba(255, 215, 0, 0.08)) !important;
+  background-position: center;
+  background-size: cover;
 }
 
 .promo-inner h2 {

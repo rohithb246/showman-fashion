@@ -13,7 +13,7 @@ from accounts.permissions import IsAdminUser
 from accounts.serializers import (
     UserSerializer, RegisterSerializer, AddressSerializer, NotificationSerializer,
     ChangePasswordSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,
-    VerifyEmailSerializer, ProfileSerializer,
+    VerifyEmailSerializer, ProfileSerializer, AdminUserUpdateSerializer,
 )
 from accounts.services import create_verification_token, create_password_reset_token
 
@@ -208,10 +208,7 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def patch(self, request, *args, **kwargs):
         user = self.get_object()
-        if 'is_blocked' in request.data:
-            user.is_blocked = request.data['is_blocked']
-            user.save(update_fields=['is_blocked'])
-        if 'role' in request.data:
-            user.role = request.data['role']
-            user.save(update_fields=['role'])
+        serializer = AdminUserUpdateSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(UserSerializer(user).data)

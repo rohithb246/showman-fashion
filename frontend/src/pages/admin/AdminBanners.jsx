@@ -1,26 +1,158 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { productAPI } from '../../services/api';
+
+const emptyBanner = {
+  title: '',
+  subtitle: '',
+  link: '',
+  banner_type: 'hero',
+  is_active: true,
+  sort_order: 0,
+};
+
+function bannerFormData(form, imageFile) {
+  const data = new FormData();
+  Object.entries(form).forEach(([key, value]) => data.append(key, value));
+  if (imageFile) data.append('image', imageFile);
+  return data;
+}
 
 export default function AdminBanners() {
   const [banners, setBanners] = useState([]);
+  const [form, setForm] = useState(emptyBanner);
+  const [editingId, setEditingId] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const loadBanners = async () => {
+    const { data } = await productAPI.banners();
+    setBanners(data.results || data);
+  };
 
   useEffect(() => {
-    productAPI.banners().then((r) => setBanners(r.data.results || r.data));
+    loadBanners();
   }, []);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setForm(emptyBanner);
+    setImageFile(null);
+  };
+
+  const editBanner = (banner) => {
+    setEditingId(banner.id);
+    setForm({
+      title: banner.title,
+      subtitle: banner.subtitle || '',
+      link: banner.link || '',
+      banner_type: banner.banner_type,
+      is_active: banner.is_active,
+      sort_order: banner.sort_order,
+    });
+    setImageFile(null);
+  };
+
+  const saveBanner = async (event) => {
+    event.preventDefault();
+    if (!editingId && !imageFile) {
+      toast.error('Please upload a banner image');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const data = bannerFormData(form, imageFile);
+      if (editingId) {
+        await productAPI.updateBanner(editingId, data);
+      } else {
+        await productAPI.createBanner(data);
+      }
+      await loadBanners();
+      resetForm();
+      toast.success('Banner saved');
+    } catch {
+      toast.error('Could not save banner');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteBanner = async (banner) => {
+    if (!window.confirm(`Delete banner "${banner.title}"?`)) return;
+    await productAPI.deleteBanner(banner.id);
+    await loadBanners();
+    toast.success('Banner deleted');
+  };
 
   return (
     <div>
-      <h1 className="admin-page-title">Banner Management</h1>
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Banner Management</h1>
+          <p className="admin-page-subtitle">Create, edit, upload images, and control visible banners.</p>
+        </div>
+        <button className="btn btn-outline btn-sm" onClick={resetForm}>New Banner</button>
+      </div>
+
+      <form className="admin-form-panel" onSubmit={saveBanner}>
+        <div className="admin-form-grid">
+          <label>
+            Title
+            <input className="admin-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+          </label>
+          <label>
+            Type
+            <select className="admin-input" value={form.banner_type} onChange={(e) => setForm({ ...form, banner_type: e.target.value })}>
+              <option value="hero">Hero</option>
+              <option value="promo">Promotional</option>
+              <option value="collection">Collection</option>
+            </select>
+          </label>
+          <label>
+            Link
+            <input className="admin-input" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="/shop" />
+          </label>
+          <label>
+            Sort Order
+            <input className="admin-input" type="number" min="0" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} />
+          </label>
+          <label>
+            Banner Image
+            <input className="admin-input" type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
+          </label>
+          <label className="admin-field-wide">
+            Subtitle
+            <input className="admin-input" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
+          </label>
+          <label className="admin-check-field">
+            <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
+            Show Banner
+          </label>
+        </div>
+        <div className="admin-actions">
+          <button className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Banner'}</button>
+          {editingId && <button type="button" className="btn btn-outline" onClick={resetForm}>Cancel Edit</button>}
+        </div>
+      </form>
+
       <div className="admin-table-wrap">
         <table className="admin-table">
-          <thead><tr><th>Title</th><th>Type</th><th>Active</th><th>Order</th></tr></thead>
+          <thead><tr><th>Image</th><th>Title</th><th>Type</th><th>Active</th><th>Order</th><th>Actions</th></tr></thead>
           <tbody>
-            {banners.map((b) => (
-              <tr key={b.id}>
-                <td>{b.title}</td>
-                <td>{b.banner_type}</td>
-                <td>{b.is_active ? 'Yes' : 'No'}</td>
-                <td>{b.sort_order}</td>
+            {banners.map((banner) => (
+              <tr key={banner.id}>
+                <td>{banner.image ? <img className="admin-thumb admin-banner-thumb" src={banner.image} alt={banner.title} /> : 'No image'}</td>
+                <td><strong>{banner.title}</strong><br /><span className="admin-muted">{banner.subtitle}</span></td>
+                <td>{banner.banner_type}</td>
+                <td>{banner.is_active ? <span className="badge badge-gold">Shown</span> : <span className="badge badge-sale">Hidden</span>}</td>
+                <td>{banner.sort_order}</td>
+                <td>
+                  <div className="admin-actions">
+                    <button className="btn btn-sm btn-outline" onClick={() => editBanner(banner)}>Edit</button>
+                    <button className="btn btn-sm btn-secondary" onClick={() => deleteBanner(banner)}>Delete</button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

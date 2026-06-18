@@ -22,22 +22,35 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { to: '/shop?is_featured=true', label: 'Collections' },
+    { to: '/', label: 'Home' },
     { to: '/shop', label: 'Shop' },
-    { to: '/shop?is_new_arrival=true', label: 'Our Craft' },
-    { to: '/shop?is_trending=true', label: 'Stories' },
+    { to: '/shop?is_featured=true', label: 'Collections' },
+    { to: '/shop?is_new_arrival=true', label: 'New Arrivals' },
+    { to: '/shop?is_trending=true', label: 'Trending' },
   ];
+  const currentPath = `${location.pathname}${location.search}`;
 
   return (
-    <header className={`navbar ${location.pathname === '/' ? 'navbar-transparent' : ''}`}>
+    <header className="navbar">
+      <div className="navbar-topline">
+        <span>Premium theatrical fashion</span>
+        <span>Free shipping above Rs. 999</span>
+      </div>
       <div className="container navbar-inner">
-        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+        <button
+          className="menu-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+        >
           {menuOpen ? <FiX /> : <FiMenu />}
         </button>
 
         <Link to="/" className="navbar-logo">
-          <img src="/logo.png" alt="The Show Man" />
-          <span>
+          <span className="logo-mark" aria-hidden="true">
+            <img src="/logo.png" alt="" />
+          </span>
+          <span className="logo-copy">
             <strong>The Show Man</strong>
             <small>Dress Like A Showman</small>
           </span>
@@ -45,7 +58,12 @@ export default function Navbar() {
 
         <nav className={`navbar-nav ${menuOpen ? 'open' : ''}`}>
           {navLinks.map((link) => (
-            <Link key={link.to} to={link.to} onClick={() => setMenuOpen(false)}>
+            <Link
+              key={link.to}
+              to={link.to}
+              className={currentPath === link.to ? 'active' : ''}
+              onClick={() => setMenuOpen(false)}
+            >
               {link.label}
             </Link>
           ))}
@@ -70,7 +88,10 @@ export default function Navbar() {
               <button className="btn btn-sm btn-ghost logout-btn" onClick={logout}>Logout</button>
             </div>
           ) : (
-            <Link to="/login" className="btn btn-sm btn-primary enquire-btn">Enquire</Link>
+            <Link to="/login" className="signin-link">
+              <FiUser aria-hidden="true" />
+              <span>Sign in</span>
+            </Link>
           )}
         </div>
       </div>

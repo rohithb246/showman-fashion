@@ -163,6 +163,28 @@ Use `deploy/nginx.conf` as the Nginx reverse proxy reference.
 docker-compose up --build
 ```
 
+Docker starts PostgreSQL, backend, frontend, and pgAdmin.
+
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:8000`
+- pgAdmin: `http://localhost:5050`
+
+pgAdmin login:
+
+- Email: `admin@theshowman.com`
+- Password: `admin123`
+
+The PostgreSQL server is pre-registered in pgAdmin as **The Show Man PostgreSQL**.
+
+Connection details if you add it manually:
+
+- Host inside Docker/pgAdmin: `db`
+- Host from your computer: `localhost`
+- Port: `5432`
+- Database: `showman_fashion`
+- Username: `postgres`
+- Password: `postgres`
+
 ## Security
 
 - JWT authentication with refresh token rotation and blacklisting
