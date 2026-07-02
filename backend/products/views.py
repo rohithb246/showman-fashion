@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.db.models import Q
+from django.db.models.deletion import ProtectedError
 from django.utils import timezone
 
 from accounts.permissions import IsAdminUser, IsFullAdminUser
@@ -179,12 +180,17 @@ class ProductVariantViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = ProductVariant.objects.select_related('product', 'size', 'color', 'inventory')
+        admin_mutation = (
+            self.action in ['update', 'partial_update', 'destroy']
+            and self.request.user.is_authenticated
+            and self.request.user.is_admin_user
+        )
         include_inactive = (
             self.request.query_params.get('include_inactive') == 'true'
             and self.request.user.is_authenticated
             and self.request.user.is_admin_user
         )
-        if not include_inactive:
+        if not include_inactive and not admin_mutation:
             qs = qs.filter(is_active=True, product__is_active=True)
         return qs
 
@@ -257,7 +263,13 @@ class InventoryViewSet(viewsets.ModelViewSet):
         # An inventory row represents one complete size/color option. Removing it
         # from inventory should remove that option everywhere, not leave a broken
         # variant without stock data.
-        instance.variant.delete()
+        try:
+            instance.variant.delete()
+        except ProtectedError:
+            instance.variant.is_active = False
+            instance.variant.save(update_fields=['is_active'])
+            instance.quantity = 0
+            instance.save(update_fields=['quantity'])
 
     @action(detail=False, methods=['post'])
     def cleanup(self, request):

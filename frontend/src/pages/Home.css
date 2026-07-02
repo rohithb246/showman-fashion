@@ -128,6 +128,13 @@
   filter: drop-shadow(-20px 0 60px rgba(74, 5, 96, 0.5));
 }
 
+.hero-image-col picture {
+  display: flex;
+  justify-content: flex-end;
+  width: auto;
+  height: 100%;
+}
+
 /* ── Large desktop (1920px+) ──────────────────────────── */
 @media (min-width: 1920px) {
   .hero-grid {
@@ -215,6 +222,12 @@
     object-position: center top;
   }
 
+  .hero-image-col picture {
+    justify-content: center;
+    width: 100%;
+    height: auto;
+  }
+
   .hero-copy {
     padding: 2rem 2rem 3rem;
     text-align: center;
@@ -251,10 +264,11 @@
     position: relative;
     inset: auto;
     order: -1;
-    padding: 1.25rem 1.25rem 0;
+    padding: 0;
     justify-content: center;
     align-items: flex-end;
-    max-height: 52svh;
+    width: 100%;
+    max-height: none;
   }
 
   .hero-image-col::before {
@@ -262,11 +276,17 @@
   }
 
   .hero-model {
+    width: 100%;
     height: auto;
-    max-height: 52svh;
-    max-width: 100%;
-    width: auto;
+    max-height: none;
+    max-width: none;
     object-position: center center;
+  }
+
+  .hero-image-col picture {
+    justify-content: center;
+    width: 100%;
+    height: auto;
   }
 
   .hero-copy {
@@ -313,7 +333,7 @@
   }
 
   .hero-model {
-    max-height: 48svh;
+    max-height: none;
   }
 }
 

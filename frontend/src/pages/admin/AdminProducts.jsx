@@ -81,6 +81,7 @@ export default function AdminProducts() {
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [inventoryTouched, setInventoryTouched] = useState(false);
 
   const variants = useMemo(() => selectedProduct?.variants || [], [selectedProduct]);
   const selectedVariant = useMemo(
@@ -117,6 +118,7 @@ export default function AdminProducts() {
     setStockForm(emptyStock);
     setSelectedProduct(null);
     setImageFile(null);
+    setInventoryTouched(false);
   };
 
   const editProduct = async (product) => {
@@ -143,6 +145,7 @@ export default function AdminProducts() {
       color_ids: uniqueOptionIds(productVariants, 'color'),
     });
     setImageFile(null);
+    setInventoryTouched(false);
   };
 
   const chooseVariant = (variantId) => {
@@ -153,6 +156,7 @@ export default function AdminProducts() {
         size_ids: uniqueOptionIds(variants, 'size'),
         color_ids: uniqueOptionIds(variants, 'color'),
       });
+      setInventoryTouched(false);
       return;
     }
     setStockForm({
@@ -166,6 +170,14 @@ export default function AdminProducts() {
       low_stock_threshold: variant.inventory?.low_stock_threshold ?? 5,
       is_active: variant.is_active,
     });
+    setInventoryTouched(false);
+  };
+
+  const updateStockForm = (field, value) => {
+    setStockForm((current) => ({ ...current, [field]: value }));
+    if (['quantity', 'low_stock_threshold'].includes(field)) {
+      setInventoryTouched(true);
+    }
   };
 
   const updateForm = (field, value) => {
@@ -210,22 +222,21 @@ export default function AdminProducts() {
       throw new Error('Select at least one size and one color, or unselect both to remove all stock options.');
     }
 
-    if (sameIds(stockForm.size_ids, currentSizeIds) && sameIds(stockForm.color_ids, currentColorIds)) {
+    const optionsChanged = !sameIds(stockForm.size_ids, currentSizeIds) || !sameIds(stockForm.color_ids, currentColorIds);
+    if (!optionsChanged && !inventoryTouched) {
       return;
     }
 
     const selectedMatrix = new Set(
       selectedSizeIds.flatMap((sizeId) => selectedColorIds.map((colorId) => `${sizeId}:${colorId}`))
     );
-    const variantsToDelete = variants.filter((variant) => (
+    const variantsToHide = variants.filter((variant) => (
       !selectedMatrix.has(`${variant.size?.id}:${variant.color?.id}`)
     ));
 
-    for (const variant of variantsToDelete) {
-      if (variant.inventory?.id) {
-        await productAPI.deleteInventory(variant.inventory.id);
-      } else {
-        await productAPI.deleteVariant(variant.id);
+    for (const variant of variantsToHide) {
+      if (variant.is_active) {
+        await productAPI.updateVariant(variant.id, { is_active: false });
       }
     }
 
@@ -246,6 +257,11 @@ export default function AdminProducts() {
               quantity: Number(stockForm.quantity || 0),
               low_stock_threshold: Number(stockForm.low_stock_threshold || 0),
             });
+          } else if (inventoryTouched) {
+            await productAPI.updateInventory(existing.inventory.id, {
+              quantity: Number(stockForm.quantity || 0),
+              low_stock_threshold: Number(stockForm.low_stock_threshold || 0),
+            });
           }
           continue;
         }
@@ -254,7 +270,8 @@ export default function AdminProducts() {
         const color = colors.find((item) => String(item.id) === String(colorId));
         const sku = `${selectedProduct.slug}-${size?.name || 'size'}-${color?.name || 'color'}`
           .toUpperCase()
-          .replace(/[^A-Z0-9]+/g, '-');
+          .replace(/[^A-Z0-9]+/g, '-')
+          .slice(0, 50);
         const { data } = await productAPI.createVariant({
           product_id: productId,
           size_id: sizeId,
@@ -519,14 +536,14 @@ export default function AdminProducts() {
             <>
               <label>
                 Size
-                <select className="admin-input" value={stockForm.size_id} onChange={(e) => setStockForm({ ...stockForm, size_id: e.target.value })}>
+                <select className="admin-input" value={stockForm.size_id} onChange={(e) => updateStockForm('size_id', e.target.value)}>
                   <option value="">Select size</option>
                   {sizes.map((size) => <option key={size.id} value={size.id}>{size.name}</option>)}
                 </select>
               </label>
               <label>
                 Color
-                <select className="admin-input" value={stockForm.color_id} onChange={(e) => setStockForm({ ...stockForm, color_id: e.target.value })}>
+                <select className="admin-input" value={stockForm.color_id} onChange={(e) => updateStockForm('color_id', e.target.value)}>
                   <option value="">Select color</option>
                   {colors.map((color) => <option key={color.id} value={color.id}>{color.name}</option>)}
                 </select>
@@ -535,18 +552,18 @@ export default function AdminProducts() {
           )}
           <label>
             SKU
-            <input className="admin-input" value={stockForm.sku} onChange={(e) => setStockForm({ ...stockForm, sku: e.target.value })} placeholder="Auto-generated" disabled={!stockForm.variant_id} />
+            <input className="admin-input" value={stockForm.sku} onChange={(e) => updateStockForm('sku', e.target.value)} placeholder="Auto-generated" disabled={!stockForm.variant_id} />
           </label>
           <label>
             Quantity
-            <input className="admin-input" type="number" min="0" value={stockForm.quantity} onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })} />
+            <input className="admin-input" type="number" min="0" value={stockForm.quantity} onChange={(e) => updateStockForm('quantity', e.target.value)} />
           </label>
           <label>
             Low Stock Alert
-            <input className="admin-input" type="number" min="0" value={stockForm.low_stock_threshold} onChange={(e) => setStockForm({ ...stockForm, low_stock_threshold: e.target.value })} />
+            <input className="admin-input" type="number" min="0" value={stockForm.low_stock_threshold} onChange={(e) => updateStockForm('low_stock_threshold', e.target.value)} />
           </label>
           <label className="admin-check-field">
-            <input type="checkbox" checked={stockForm.is_active} onChange={(e) => setStockForm({ ...stockForm, is_active: e.target.checked })} />
+            <input type="checkbox" checked={stockForm.is_active} onChange={(e) => updateStockForm('is_active', e.target.checked)} />
             Show Option
           </label>
         </div>

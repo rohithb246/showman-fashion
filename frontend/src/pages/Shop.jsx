@@ -57,7 +57,10 @@ export default function Shop() {
     setSearchParams(newParams);
   };
 
-  const clearFilters = () => setSearchParams({});
+  const clearFilters = () => {
+    setFiltersOpen(false);
+    setSearchParams(new URLSearchParams());
+  };
   const selectedCategory = categories.find((c) => c.slug === params.category);
   const visibleSubcategories = selectedCategory
     ? subcategories.filter((s) => s.category === selectedCategory.id)
@@ -65,9 +68,12 @@ export default function Shop() {
 
   return (
     <div className="shop-page">
-      <div className="page-header">
-        <h1>Shop Collection</h1>
-        <p>{totalCount} products found</p>
+      <div className="page-header shop-header">
+        <div className="shop-header-inner">
+          <span className="shop-kicker">Curated wardrobe</span>
+          <h1>Shop Collection</h1>
+          <p>{totalCount} products found</p>
+        </div>
       </div>
 
       <div className="container shop-layout">
