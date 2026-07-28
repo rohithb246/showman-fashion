@@ -50,9 +50,9 @@ def serve_frontend(request, path=''):
     requested_file = (frontend_root / path).resolve()
 
     if requested_file.is_relative_to(frontend_root) and requested_file.is_file():
-        return FileResponse(requested_file)
+        return FileResponse(requested_file.open('rb'))
 
     index_file = frontend_root / 'index.html'
     if not index_file.is_file():
         raise Http404('Frontend build is not available.')
-    return FileResponse(index_file)
+    return FileResponse(index_file.open('rb'))
