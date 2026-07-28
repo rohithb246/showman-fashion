@@ -65,8 +65,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
 DATABASE_URL = config('DATABASE_URL', default='')
+# A free Render web service can start without a managed database. Configure
+# DATABASE_URL for persistent PostgreSQL; otherwise use temporary SQLite there.
+USE_SQLITE = config(
+    'USE_SQLITE',
+    default=bool(os.environ.get('RENDER')) and not DATABASE_URL,
+    cast=bool,
+)
 
 if USE_SQLITE:
     DATABASES = {
