@@ -1,0 +1,17 @@
+.git
+.agents
+.codex
+node_modules
+frontend/node_modules
+showman-fashion/node_modules
+frontend/dist
+backend/venv
+backend/.venv
+backend/__pycache__
+backend/staticfiles
+backend/media
+*.pyc
+*.sqlite3
+.env
+backend/.env
+frontend/.env
