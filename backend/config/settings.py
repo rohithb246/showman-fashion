@@ -6,6 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from decouple import config, Csv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -65,6 +66,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
+DATABASE_URL = config('DATABASE_URL', default='')
 
 if USE_SQLITE:
     DATABASES = {
@@ -72,6 +74,11 @@ if USE_SQLITE:
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
+    }
+elif DATABASE_URL:
+    # Render and most managed PostgreSQL providers expose one connection URL.
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
 else:
     DATABASES = {
