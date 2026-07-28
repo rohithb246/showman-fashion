@@ -51,15 +51,20 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="hero-tag">The Signature Collection</span>
-            <h1>Own the room.<br /><span>Command the stage.</span></h1>
+            <span className="hero-tag">The Signature Collection · 2026</span>
+            <h1>Dress for the<br /><span>moment that matters.</span></h1>
             <p>
               Precision tailoring, rich textures, and unmistakable presence—
               designed for men who never blend into the background.
             </p>
             <div className="hero-actions">
               <Link to="/shop" className="btn btn-primary btn-lg">Shop Collection</Link>
-              <Link to="/shop?category=accessories" className="btn btn-outline btn-lg hero-outline">Accessories</Link>
+              <Link to="/shop?is_new_arrival=true" className="btn btn-outline btn-lg hero-outline">New Arrivals</Link>
+            </div>
+            <div className="hero-proof" aria-label="Store benefits">
+              <span><b>Premium</b> fabrics</span><i />
+              <span><b>Curated</b> collections</span><i />
+              <span><b>Secure</b> checkout</span>
             </div>
           </motion.div>
 

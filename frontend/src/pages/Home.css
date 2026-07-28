@@ -49,6 +49,8 @@
   padding: clamp(3.5rem, 6vw, 6rem) clamp(2rem, 4vw, 5rem) clamp(3.5rem, 6vw, 6rem) clamp(1.5rem, 5vw, 7rem);
 }
 
+.hero-copy::before { content: ''; position: absolute; z-index: -1; width: min(33rem, 110%); height: min(33rem, 110%); left: -15rem; top: 50%; border-radius: 50%; background: radial-gradient(circle, rgba(105, 13, 132, .35), transparent 68%); transform: translateY(-50%); }
+
 .hero-tag {
   display: inline-flex;
   padding: 0.55rem 1rem;
@@ -93,6 +95,10 @@
   min-height: 56px;
   border-radius: 0;
 }
+
+.hero-proof { display: flex; align-items: center; gap: .75rem; margin-top: 2.4rem; color: rgba(255, 255, 255, .72); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+.hero-proof b { color: var(--gold); font-weight: 800; }
+.hero-proof i { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
 
 .hero-outline {
   border-color: rgba(255, 255, 255, 0.55) !important;
