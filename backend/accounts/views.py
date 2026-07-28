@@ -41,7 +41,14 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        create_verification_token(user)
+        try:
+            create_verification_token(user)
+        except Exception:
+            user.delete()
+            return Response(
+                {'detail': 'Unable to send the verification email. Check the SMTP settings and Gmail App Password.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         return Response({
             'user': UserSerializer(user).data,
             'message': 'A verification code has been sent to your email.',

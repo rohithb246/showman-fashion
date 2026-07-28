@@ -59,7 +59,8 @@ export default function ProductCard({ product, index = 0 }) {
             <img src={product.primary_image} alt={product.name} loading="lazy" />
           ) : (
             <div className="product-placeholder">
-              <span>{product.name.charAt(0)}</span>
+              <img src="/hero-desktop.png" alt="" className="product-fallback-image" />
+              <span>THE SHOW MAN</span>
             </div>
           )}
           {hasDiscount && <span className="badge badge-sale">-{discount}%</span>}
