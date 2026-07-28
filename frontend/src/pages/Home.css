@@ -4,6 +4,7 @@
   min-height: calc(100svh - 108px);
   overflow: hidden;
   background: #150817;
+  isolation: isolate;
 }
 
 .hero-bg {
@@ -13,6 +14,17 @@
     radial-gradient(ellipse 60% 70% at 80% 55%, rgba(74, 5, 96, 0.55) 0%, transparent 65%),
     radial-gradient(ellipse 40% 50% at 20% 40%, rgba(255, 215, 0, 0.06) 0%, transparent 60%),
     linear-gradient(135deg, #0c030e 0%, #1a0420 50%, #0c030e 100%);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  right: clamp(1rem, 4vw, 5rem);
+  bottom: clamp(1rem, 3vw, 3rem);
+  width: min(34vw, 370px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.8));
 }
 
 /* Two-column grid: 45% text | 55% image */
@@ -187,6 +199,48 @@
   }
 }
 
+@media (max-width: 700px) {
+  .hero {
+    min-height: min(760px, calc(100svh - 68px));
+  }
+
+  .hero-grid {
+    display: flex;
+    min-height: min(760px, calc(100svh - 68px));
+    align-items: flex-end;
+  }
+
+  .hero-image-col {
+    opacity: 0.72;
+  }
+
+  .hero-image-col::before {
+    background: linear-gradient(90deg, rgba(12, 3, 14, 0.88), rgba(12, 3, 14, 0.18)), linear-gradient(0deg, rgba(12, 3, 14, 0.98), rgba(12, 3, 14, 0.08) 70%);
+  }
+
+  .hero-model,
+  .hero-image-col picture {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-model {
+    object-fit: cover;
+    object-position: 62% center;
+  }
+
+  .hero-copy {
+    width: 100%;
+    padding: 4.5rem 1.4rem 2.6rem;
+  }
+
+  .hero h1 { font-size: clamp(2.7rem, 13vw, 4.1rem); }
+  .hero p { max-width: 31rem; font-size: 1rem; }
+  .hero-actions { width: 100%; }
+  .hero-actions .btn { flex: 1 1 170px; }
+  .hero::after { width: 46vw; right: 1.4rem; bottom: 1rem; }
+}
+
 /* ── Small tablet (601px – 767px) ────────────────────── */
 @media (max-width: 767px) and (min-width: 601px) {
   .hero {
@@ -335,6 +389,19 @@
   .hero-model {
     max-height: none;
   }
+}
+
+/* Final mobile hero rules: keep copy readable over the campaign image. */
+@media (max-width: 600px) {
+  .hero-grid { display: flex; min-height: min(760px, calc(100svh - 68px)); }
+  .hero-image-col { position: absolute; inset: 0; order: 0; opacity: 0.74; }
+  .hero-image-col::before { display: block; background: linear-gradient(90deg, rgba(12, 3, 14, .92), rgba(12, 3, 14, .28)), linear-gradient(0deg, rgba(12, 3, 14, .98), transparent 72%); }
+  .hero-image-col picture, .hero-model { width: 100%; height: 100%; max-width: none; max-height: none; }
+  .hero-model { object-fit: cover; object-position: 62% center; }
+  .hero-copy { z-index: 2; align-self: flex-end; width: 100%; padding: 4.25rem 1.4rem 2.7rem; text-align: left; align-items: flex-start; }
+  .hero h1 { font-size: clamp(2.7rem, 13vw, 4rem); }
+  .hero p { max-width: 30rem; }
+  .hero-actions { justify-content: flex-start; }
 }
 
 /* ── Sections ─────────────────────────────────────────── */

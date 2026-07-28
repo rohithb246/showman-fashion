@@ -6,8 +6,7 @@ import './Auth.css';
 
 export default function Register() {
   const [form, setForm] = useState({
-    email: '', username: '', first_name: '', last_name: '',
-    password: '', password_confirm: '',
+    username: '', email: '', password: '', password_confirm: '',
   });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -38,9 +37,9 @@ export default function Register() {
         <h1>Join The Show</h1>
         <p className="auth-subtitle">Create your account</p>
         <form onSubmit={handleSubmit}>
-          {['first_name', 'last_name', 'email', 'username'].map((field) => (
+          {['username', 'email'].map((field) => (
             <div key={field} className="form-group">
-              <label>{field.replace('_', ' ')}</label>
+              <label>{field === 'username' ? 'Username' : 'Email address'}</label>
               <input
                 className="form-input"
                 required
