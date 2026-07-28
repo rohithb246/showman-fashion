@@ -11,8 +11,14 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-showman-dev-key-change-me')
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+DEBUG = config('DEBUG', default=not bool(os.environ.get('RENDER')), cast=bool)
+# Accept the generated Render subdomain without requiring a manual setting.
+# Set ALLOWED_HOSTS explicitly when using a custom domain.
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1,.onrender.com',
+    cast=Csv(),
+)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
