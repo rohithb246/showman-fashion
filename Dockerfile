@@ -1,5 +1,12 @@
 # Default Dockerfile for Render deployments configured from the repository root.
-# The React frontend is deployed separately as the static site in render.yaml.
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -11,6 +18,7 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ ./
+COPY --from=frontend-build /frontend/dist ./frontend_dist
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000

@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.http import FileResponse, Http404
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -40,3 +42,17 @@ def log_admin_action(admin, action, model_name, object_id='', details=None, ip=N
         details=details or {},
         ip_address=ip,
     )
+
+
+def serve_frontend(request, path=''):
+    """Serve the bundled React application from the single Render service."""
+    frontend_root = settings.FRONTEND_DIST.resolve()
+    requested_file = (frontend_root / path).resolve()
+
+    if requested_file.is_relative_to(frontend_root) and requested_file.is_file():
+        return FileResponse(requested_file)
+
+    index_file = frontend_root / 'index.html'
+    if not index_file.is_file():
+        raise Http404('Frontend build is not available.')
+    return FileResponse(index_file)
