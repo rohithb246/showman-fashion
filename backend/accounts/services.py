@@ -13,14 +13,13 @@ def generate_token():
     return secrets.token_urlsafe(32)
 
 
-def send_verification_email(user, token):
-    verify_url = f'{settings.FRONTEND_URL}/verify-email?token={token}'
+def send_verification_email(user, otp):
     send_mail(
-        subject='Verify your email - The Show Man',
-        message=f'Click the link to verify your email: {verify_url}',
+        subject='Your The Show Man verification code',
+        message=f'Your verification code is {otp}. It expires in 10 minutes.',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
-        fail_silently=True,
+        fail_silently=False,
     )
 
 
@@ -37,11 +36,12 @@ def send_password_reset_email(user, token):
 
 def create_verification_token(user):
     from accounts.models import EmailVerificationToken
-    token = generate_token()
+    EmailVerificationToken.objects.filter(user=user).delete()
+    token = f'{secrets.randbelow(1_000_000):06d}'
     EmailVerificationToken.objects.create(
         user=user,
         token=token,
-        expires_at=timezone.now() + timedelta(hours=24),
+        expires_at=timezone.now() + timedelta(minutes=10),
     )
     send_verification_email(user, token)
     return token

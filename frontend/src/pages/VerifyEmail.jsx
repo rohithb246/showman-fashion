@@ -1,29 +1,44 @@
-import { useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { authAPI } from '../services/api';
 import './Auth.css';
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const navigate = useNavigate();
+  const [email, setEmail] = useState(searchParams.get('email') || '');
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (token) {
-      authAPI.verifyEmail(token)
-        .then(() => toast.success('Email verified!'))
-        .catch(() => toast.error('Verification failed'));
-    }
-  }, [token]);
+  const verify = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    try {
+      await authAPI.verifyEmail(email, code);
+      toast.success('Email verified. You can sign in now.');
+      navigate('/login');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'The code is invalid or expired.');
+    } finally { setLoading(false); }
+  };
 
-  return (
-    <div className="auth-page">
-      <div className="auth-card glass-card">
-        <img src="/logo.png" alt="The Show Man" className="auth-logo" />
-        <h1>Email Verification</h1>
-        <p>Your email has been processed. You can now enjoy full access.</p>
-        <Link to="/" className="btn btn-primary">Continue Shopping</Link>
-      </div>
-    </div>
-  );
+  const resend = async () => {
+    if (!email) return toast.error('Enter your email address first.');
+    try { await authAPI.resendVerificationCode(email); toast.success('A new code was sent.'); }
+    catch { toast.error('Could not send a new code.'); }
+  };
+
+  return <div className="auth-page"><div className="auth-card glass-card">
+    <img src="/logo.png" alt="The Show Man" className="auth-logo" />
+    <h1>Verify your email</h1>
+    <p className="auth-subtitle">Enter the six-digit code sent to your inbox.</p>
+    <form onSubmit={verify}>
+      <div className="form-group"><label>Email</label><input className="form-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+      <div className="form-group"><label>Verification code</label><input className="form-input" inputMode="numeric" maxLength="6" pattern="[0-9]{6}" required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} /></div>
+      <button className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading}>{loading ? 'Verifying...' : 'Verify email'}</button>
+    </form>
+    <button className="btn btn-ghost" onClick={resend} type="button">Resend code</button>
+    <p className="auth-footer"><Link to="/login">Back to Sign In</Link></p>
+  </div></div>;
 }

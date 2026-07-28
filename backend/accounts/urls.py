@@ -6,7 +6,7 @@ from accounts.views import (
     ProfileDetailUpdateView, AddressListCreateView, AddressDetailView,
     NotificationListView, mark_notification_read, ChangePasswordView,
     ForgotPasswordView, ResetPasswordView, VerifyEmailView,
-    AdminUserListView, AdminUserDetailView,
+    AdminUserListView, AdminUserDetailView, ResendVerificationCodeView,
 )
 
 urlpatterns = [
@@ -24,6 +24,7 @@ urlpatterns = [
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
     path('verify-email/', VerifyEmailView.as_view(), name='verify_email'),
+    path('verify-email/resend/', ResendVerificationCodeView.as_view(), name='resend_verification_code'),
     path('admin/users/', AdminUserListView.as_view(), name='admin_users'),
     path('admin/users/<int:pk>/', AdminUserDetailView.as_view(), name='admin_user_detail'),
 ]

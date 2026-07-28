@@ -42,12 +42,9 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         create_verification_token(user)
-        refresh = RefreshToken.for_user(user)
         return Response({
             'user': UserSerializer(user).data,
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'message': 'Registration successful. Please verify your email.',
+            'message': 'A verification code has been sent to your email.',
         }, status=status.HTTP_201_CREATED)
 
 
@@ -182,6 +179,7 @@ class VerifyEmailView(APIView):
         try:
             token = EmailVerificationToken.objects.get(
                 token=serializer.validated_data['token'],
+                user__email=serializer.validated_data['email'],
                 expires_at__gt=timezone.now(),
             )
             user = token.user
@@ -191,6 +189,19 @@ class VerifyEmailView(APIView):
             return Response({'detail': 'Email verified successfully.'})
         except EmailVerificationToken.DoesNotExist:
             return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResendVerificationCodeView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        try:
+            user = User.objects.get(email=email, email_verified=False)
+            create_verification_token(user)
+        except User.DoesNotExist:
+            pass
+        return Response({'detail': 'If the account exists, a new code has been sent.'})
 
 
 class AdminUserListView(generics.ListCreateAPIView):

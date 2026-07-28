@@ -45,10 +45,6 @@ export function AuthProvider({ children }) {
 
   const register = async (formData) => {
     const { data } = await authAPI.register(formData);
-    localStorage.setItem('access_token', data.access);
-    localStorage.setItem('refresh_token', data.refresh);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
     return data;
   };
 

@@ -22,8 +22,8 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form);
-      toast.success('Account created! Please verify your email.');
-      navigate('/');
+      toast.success('We sent a six-digit code to your email.');
+      navigate(`/verify-email?email=${encodeURIComponent(form.email)}`);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Registration failed');
     } finally {
