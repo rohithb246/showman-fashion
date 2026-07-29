@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { productAPI } from '../services/api';
+import { coreAPI, productAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -32,10 +32,15 @@ export default function Home() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const handleNewsletter = (e) => {
+  const handleNewsletter = async (e) => {
     e.preventDefault();
-    toast.success('Thank you for subscribing!');
-    setEmail('');
+    try {
+      const { data } = await coreAPI.subscribe(email);
+      toast.success(data.detail);
+      setEmail('');
+    } catch (err) {
+      toast.error(err.response?.data?.email?.[0] || 'Unable to subscribe. Please try again.');
+    }
   };
 
   if (loading) return <LoadingSpinner fullPage />;

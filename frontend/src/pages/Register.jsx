@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Register() {
   const [form, setForm] = useState({
     username: '', email: '', password: '', password_confirm: '',
   });
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -29,6 +30,14 @@ export default function Register() {
       setLoading(false);
     }
   };
+
+  const handleGoogle = useCallback(async ({ credential }) => {
+    try {
+      await loginWithGoogle(credential);
+      toast.success('Your Google account is ready.');
+      navigate('/');
+    } catch (err) { toast.error(err.response?.data?.detail || 'Google registration failed'); }
+  }, [loginWithGoogle, navigate]);
 
   return (
     <div className="auth-page">
@@ -61,6 +70,8 @@ export default function Register() {
             {loading ? 'Creating...' : 'Create Account'}
           </button>
         </form>
+        <div className="auth-divider">or</div>
+        <GoogleSignInButton onCredential={handleGoogle} onError={() => toast.error('Google sign-in is unavailable')} />
         <p className="auth-footer">Already have an account? <Link to="/login">Sign In</Link></p>
       </div>
     </div>

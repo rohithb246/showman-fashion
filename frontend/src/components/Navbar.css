@@ -351,8 +351,24 @@
   }
 
   .navbar-inner {
+    /* Keep the logo centered after a customer signs in. */
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     min-height: 68px;
     gap: 0.65rem;
+  }
+
+  .menu-toggle {
+    justify-self: start;
+  }
+
+  .navbar-logo {
+    grid-column: 2;
+    justify-self: center;
+  }
+
+  .navbar-actions {
+    grid-column: 3;
+    justify-self: end;
   }
 
   .navbar-nav {
@@ -370,9 +386,13 @@
 
   .logo-copy small,
   .navbar-actions .icon-btn[aria-label='Wishlist'],
-  .signin-link span {
+  .signin-link span,
+  .logout-btn {
     display: none;
   }
+
+  .navbar-actions { gap: 0.15rem; }
+  .user-menu { gap: 0; }
 
   .signin-link {
     width: 42px;

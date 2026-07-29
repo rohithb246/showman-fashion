@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve
 from core.views import serve_frontend
 
 urlpatterns = [
@@ -14,8 +14,11 @@ urlpatterns = [
     path('api/admin/', include('admin_panel.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Render's free Docker service has no separate media server. Serve uploaded
+# product photos before the React catch-all route.
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
 
 # Keep this last so API and Django admin routes take precedence over React routes.
 urlpatterns += [re_path(r'^(?P<path>.*)$', serve_frontend)]

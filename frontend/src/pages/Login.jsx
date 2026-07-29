@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -24,6 +25,14 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  const handleGoogle = useCallback(async ({ credential }) => {
+    try {
+      const data = await loginWithGoogle(credential);
+      toast.success('Welcome to The Show Man!');
+      navigate(data.user.role === 'admin' || data.user.role === 'staff' ? '/admin' : '/');
+    } catch (err) { toast.error(err.response?.data?.detail || 'Google sign-in failed'); }
+  }, [loginWithGoogle, navigate]);
 
   return (
     <div className="auth-page">
@@ -45,6 +54,8 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+        <div className="auth-divider">or</div>
+        <GoogleSignInButton onCredential={handleGoogle} onError={() => toast.error('Google sign-in is unavailable')} />
         <p className="auth-footer">Don't have an account? <Link to="/register">Register</Link></p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
@@ -8,12 +9,12 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from accounts.models import Address, Notification, EmailVerificationToken, PasswordResetToken
+from accounts.models import Address, Notification, Profile, EmailVerificationToken, PasswordResetToken
 from accounts.permissions import IsAdminUser, IsFullAdminUser
 from accounts.serializers import (
     UserSerializer, RegisterSerializer, AddressSerializer, NotificationSerializer,
     ChangePasswordSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,
-    VerifyEmailSerializer, ProfileSerializer, AdminUserUpdateSerializer,
+    VerifyEmailSerializer, GoogleAuthSerializer, ProfileSerializer, AdminUserUpdateSerializer,
     AdminUserCreateSerializer,
 )
 from accounts.services import create_verification_token, create_password_reset_token
@@ -53,6 +54,46 @@ class RegisterView(generics.CreateAPIView):
             'user': UserSerializer(user).data,
             'message': 'A verification code has been sent to your email.',
         }, status=status.HTTP_201_CREATED)
+
+
+class GoogleAuthView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = GoogleAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if not settings.GOOGLE_CLIENT_ID:
+            return Response({'detail': 'Google sign-in is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        try:
+            from google.auth.transport import requests as google_requests
+            from google.oauth2 import id_token
+            payload = id_token.verify_oauth2_token(
+                serializer.validated_data['credential'], google_requests.Request(), settings.GOOGLE_CLIENT_ID
+            )
+            email = payload['email'].strip().lower()
+            if not payload.get('email_verified'):
+                raise ValueError('Google email is not verified.')
+        except (ValueError, KeyError) as exc:
+            return Response({'detail': 'Invalid Google sign-in token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            base_username = (email.split('@')[0] or 'showman')[:130]
+            username = base_username
+            suffix = 1
+            while User.objects.filter(username=username).exists():
+                suffix += 1
+                username = f'{base_username[:145]}-{suffix}'
+            user = User.objects.create_user(
+                email=email, username=username,
+                first_name=payload.get('given_name', ''), last_name=payload.get('family_name', ''),
+                email_verified=True,
+            )
+            Profile.objects.create(user=user)
+        if user.is_blocked:
+            return Response({'detail': 'Account is blocked.'}, status=status.HTTP_403_FORBIDDEN)
+        refresh = RefreshToken.for_user(user)
+        return Response({'refresh': str(refresh), 'access': str(refresh.access_token), 'user': UserSerializer(user).data})
 
 
 class LogoutView(APIView):

@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import IsAdminUser
-from core.models import ContactMessage, AdminLog
-from core.serializers import ContactMessageSerializer, ContactAdminSerializer
+from core.models import ContactMessage, NewsletterSubscriber, AdminLog
+from core.serializers import ContactMessageSerializer, ContactAdminSerializer, NewsletterSubscriberSerializer
 
 
 class ContactCreateView(generics.CreateAPIView):
@@ -18,6 +18,24 @@ class ContactCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user if self.request.user.is_authenticated else None
         serializer.save(user=user)
+
+
+class NewsletterSubscribeView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = NewsletterSubscriberSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email'].lower()
+        subscriber, created = NewsletterSubscriber.objects.get_or_create(email=email)
+        if not subscriber.is_active:
+            subscriber.is_active = True
+            subscriber.save(update_fields=['is_active'])
+            created = True
+        return Response(
+            {'detail': 'You are subscribed to new-item alerts.'},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
 
 
 class ContactAdminListView(generics.ListAPIView):

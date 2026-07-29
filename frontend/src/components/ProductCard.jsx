@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiHeart, FiShoppingBag } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -7,6 +8,7 @@ import { useCart } from '../context/CartContext';
 import './ProductCard.css';
 
 export default function ProductCard({ product, index = 0 }) {
+  const [imageFailed, setImageFailed] = useState(false);
   const { user } = useAuth();
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const variants = product.variants || [];
@@ -55,8 +57,13 @@ export default function ProductCard({ product, index = 0 }) {
     >
       <Link to={`/product/${product.slug}`} className="product-card-link">
         <div className="product-image-wrap">
-          {product.primary_image ? (
-            <img src={product.primary_image} alt={product.name} loading="lazy" />
+          {product.primary_image && !imageFailed ? (
+            <img
+              src={product.primary_image}
+              alt={product.name}
+              loading="lazy"
+              onError={() => setImageFailed(true)}
+            />
           ) : (
             <div className="product-placeholder">
               <img src="/hero-desktop.png" alt="" className="product-fallback-image" />

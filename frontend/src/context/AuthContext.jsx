@@ -43,6 +43,15 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const loginWithGoogle = async (credential) => {
+    const { data } = await authAPI.googleLogin(credential);
+    localStorage.setItem('access_token', data.access);
+    localStorage.setItem('refresh_token', data.refresh);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUser(data.user);
+    return data;
+  };
+
   const register = async (formData) => {
     const { data } = await authAPI.register(formData);
     return data;
@@ -63,7 +72,7 @@ export function AuthProvider({ children }) {
   const isFullAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout, isAdmin, isFullAdmin, loadProfile }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, loginWithGoogle, register, logout, isAdmin, isFullAdmin, loadProfile }}>
       {children}
     </AuthContext.Provider>
   );

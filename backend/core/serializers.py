@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import ContactMessage
+from core.models import ContactMessage, NewsletterSubscriber
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
@@ -20,3 +20,9 @@ class ContactAdminSerializer(serializers.ModelSerializer):
             'status', 'admin_notes', 'created_at', 'updated_at',
         ]
         read_only_fields = ['name', 'email', 'subject', 'message', 'created_at', 'updated_at']
+
+
+class NewsletterSubscriberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NewsletterSubscriber
+        fields = ['email']

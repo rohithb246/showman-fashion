@@ -124,3 +124,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 class VerifyEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
     token = serializers.CharField()
+
+
+class GoogleAuthSerializer(serializers.Serializer):
+    credential = serializers.CharField()

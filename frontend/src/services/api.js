@@ -43,6 +43,7 @@ api.interceptors.response.use(
 
 export const authAPI = {
   register: (data) => api.post('/auth/register/', data),
+  googleLogin: (credential) => api.post('/auth/google/', { credential }),
   login: (data) => api.post('/auth/login/', data),
   logout: (refresh) => api.post('/auth/logout/', { refresh }),
   profile: () => api.get('/auth/profile/'),
@@ -140,6 +141,7 @@ export const adminAPI = {
 
 export const coreAPI = {
   contact: (data) => api.post('/core/contact/', data),
+  subscribe: (email) => api.post('/core/newsletter/subscribe/', { email }),
 };
 
 export default api;

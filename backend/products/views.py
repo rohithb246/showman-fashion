@@ -129,6 +129,19 @@ class ProductViewSet(viewsets.ModelViewSet):
         )
         return context
 
+    def perform_create(self, serializer):
+        product = serializer.save()
+        if product.is_new_arrival and product.is_active:
+            from core.services import send_new_arrival_alerts
+            send_new_arrival_alerts(product)
+
+    def perform_update(self, serializer):
+        was_new_arrival = serializer.instance.is_new_arrival
+        product = serializer.save()
+        if product.is_new_arrival and product.is_active and not was_new_arrival:
+            from core.services import send_new_arrival_alerts
+            send_new_arrival_alerts(product)
+
     @action(detail=True, methods=['get'])
     def related(self, request, slug=None):
         product = self.get_object()
