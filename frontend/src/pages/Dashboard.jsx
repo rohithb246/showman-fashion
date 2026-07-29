@@ -81,7 +81,13 @@ function DashboardContent() {
                   </button>
                 )}
               </div>
-            )) : <p className="empty-text">No orders yet</p>}
+            )) : (
+              <div className="dashboard-empty-state">
+                <strong>No orders yet</strong>
+                <p>Your placed orders will appear here.</p>
+                <Link to="/shop" className="btn btn-primary btn-sm">Start Shopping</Link>
+              </div>
+            )}
           </div>
         )}
 

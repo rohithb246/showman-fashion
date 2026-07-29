@@ -1,7 +1,7 @@
 /* Storefront hero — the campaign video is intentionally limited to the public home page. */
 .hero {
   position: relative;
-  min-height: clamp(34rem, 78svh, 52rem);
+  min-height: clamp(25rem, 58svh, 38rem);
   overflow: hidden;
   isolation: isolate;
   background: #110d0b;
@@ -20,14 +20,14 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center 24%;
 }
 
 .hero-scrim {
   z-index: -1;
   background:
-    linear-gradient(90deg, rgba(12, 9, 7, 0.88) 0%, rgba(12, 9, 7, 0.67) 40%, rgba(12, 9, 7, 0.12) 76%),
-    linear-gradient(0deg, rgba(12, 9, 7, 0.5), transparent 48%);
+    linear-gradient(90deg, rgba(12, 9, 7, 0.76) 0%, rgba(12, 9, 7, 0.48) 40%, rgba(12, 9, 7, 0.05) 76%),
+    linear-gradient(0deg, rgba(12, 9, 7, 0.3), transparent 48%);
 }
 
 .hero-grid {
@@ -100,14 +100,14 @@
 .hero-proof i { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
 
 @media (max-width: 900px) {
-  .hero { min-height: clamp(32rem, 74svh, 46rem); }
-  .hero-scrim { background: linear-gradient(90deg, rgba(12, 9, 7, 0.84), rgba(12, 9, 7, 0.27)), linear-gradient(0deg, rgba(12, 9, 7, 0.62), transparent 56%); }
+  .hero { min-height: clamp(28rem, 62svh, 38rem); }
+  .hero-scrim { background: linear-gradient(90deg, rgba(12, 9, 7, 0.77), rgba(12, 9, 7, 0.18)), linear-gradient(0deg, rgba(12, 9, 7, 0.42), transparent 56%); }
 }
 
 @media (max-width: 640px) {
-  .hero { min-height: calc(100svh - 60px); }
-  .hero-video { object-position: 58% center; }
-  .hero-scrim { background: linear-gradient(90deg, rgba(12, 9, 7, 0.7), rgba(12, 9, 7, 0.14)), linear-gradient(0deg, rgba(12, 9, 7, 0.94) 0%, rgba(12, 9, 7, 0.42) 56%, rgba(12, 9, 7, 0.08) 100%); }
+  .hero { min-height: min(42rem, calc(100svh - 60px)); }
+  .hero-video { object-position: 58% 20%; }
+  .hero-scrim { background: linear-gradient(90deg, rgba(12, 9, 7, 0.63), rgba(12, 9, 7, 0.1)), linear-gradient(0deg, rgba(12, 9, 7, 0.88) 0%, rgba(12, 9, 7, 0.32) 56%, rgba(12, 9, 7, 0.02) 100%); }
   .hero-grid { align-items: flex-end; padding: 2rem var(--gutter) 2.5rem; }
   .hero h1 { max-width: 10.5ch; font-size: clamp(2.8rem, 13vw, 4.4rem); }
   .hero p { margin-bottom: 1.5rem; font-size: 0.96rem; }

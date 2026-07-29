@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -13,7 +14,16 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="admin-page-title">Dashboard</h1>
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Dashboard</h1>
+          <p className="admin-page-subtitle">Your store activity at a glance.</p>
+        </div>
+        <div className="admin-dashboard-actions">
+          <Link to="/admin/products" className="btn btn-primary btn-sm">Manage Products</Link>
+          <Link to="/admin/orders" className="btn btn-outline btn-sm">View Orders</Link>
+        </div>
+      </div>
       <div className="admin-stats">
         <div className="admin-stat-card"><h3>Total Users</h3><div className="value">{data.total_users}</div></div>
         <div className="admin-stat-card"><h3>Total Orders</h3><div className="value">{data.total_orders}</div></div>
@@ -23,7 +33,7 @@ export default function AdminDashboard() {
         <div className="admin-stat-card"><h3>Pending Contacts</h3><div className="value">{data.pending_contacts}</div></div>
       </div>
 
-      <h2 style={{ color: 'var(--purple)', marginBottom: '1rem' }}>Recent Orders</h2>
+      <h2 className="admin-section-heading">Recent Orders</h2>
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
@@ -39,6 +49,17 @@ export default function AdminDashboard() {
                 <td>{new Date(o.created_at).toLocaleDateString()}</td>
               </tr>
             ))}
+            {!data.recent_orders.length && (
+              <tr>
+                <td colSpan="5">
+                  <div className="admin-empty-state">
+                    <strong>No orders yet</strong>
+                    <span>New customer orders will appear here.</span>
+                    <Link to="/admin/products" className="btn btn-outline btn-sm">Manage Products</Link>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
