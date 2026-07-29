@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
@@ -20,6 +22,7 @@ from accounts.serializers import (
 from accounts.services import create_verification_token, create_password_reset_token
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -55,6 +58,9 @@ class RegisterView(generics.CreateAPIView):
         try:
             create_verification_token(user)
         except Exception:
+            # Preserve the exact SMTP failure in server logs for diagnosis,
+            # while keeping the API response safe for customers.
+            logger.exception('Registration OTP email delivery failed for %s', email)
             if created:
                 user.delete()
             return Response(

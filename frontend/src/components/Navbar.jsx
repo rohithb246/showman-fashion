@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { FiSearch, FiShoppingBag, FiHeart, FiUser, FiMenu, FiX } from 'react-icons/fi';
+import { FiChevronDown, FiSearch, FiShoppingBag, FiHeart, FiUser, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import './Navbar.css';
@@ -8,6 +8,7 @@ import './Navbar.css';
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { user, logout, isAdmin } = useAuth();
   const { cartCount } = useCart();
@@ -25,6 +26,12 @@ export default function Navbar() {
     { to: '/', label: 'Home' },
     { to: '/shop', label: 'Shop' },
     { to: '/shop?is_new_arrival=true', label: 'New Arrivals' },
+  ];
+  const categoryLinks = [
+    { to: '/shop?category=mens-wear', label: "Men's Wear" },
+    { to: '/shop?category=womens-wear', label: "Women's Wear" },
+    { to: '/shop?category=ethnic-wear', label: 'Ethnic Wear' },
+    { to: '/shop?category=kids-wear', label: "Kids' Wear" },
     { to: '/shop?category=accessories', label: 'Accessories' },
     { to: '/shop?category=shoes', label: 'Shoes' },
   ];
@@ -67,6 +74,24 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          <div className="nav-categories" onMouseEnter={() => setCategoriesOpen(true)} onMouseLeave={() => setCategoriesOpen(false)}>
+            <button
+              className="nav-category-trigger"
+              type="button"
+              aria-expanded={categoriesOpen}
+              onClick={() => setCategoriesOpen(!categoriesOpen)}
+            >
+              Categories <FiChevronDown aria-hidden="true" />
+            </button>
+            <div className={`categories-menu ${categoriesOpen ? 'open' : ''}`}>
+              <span className="categories-menu-label">Shop collections</span>
+              {categoryLinks.map((link) => (
+                <Link key={link.to} to={link.to} onClick={() => { setCategoriesOpen(false); setMenuOpen(false); }}>
+                  {link.label}<span aria-hidden="true">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </nav>
 
         <div className="navbar-actions">

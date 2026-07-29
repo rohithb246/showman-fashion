@@ -7,6 +7,7 @@ const GOOGLE_CLIENT_ID = '968497314939-k13s816ek41kt5n6doteucesd8aj2cp6.apps.goo
 
 export default function GoogleSignInButton({ onCredential, onError }) {
   const container = useRef(null);
+  const initialized = useRef(false);
   const [clientId, setClientId] = useState(GOOGLE_CLIENT_ID);
 
   useEffect(() => {
@@ -18,15 +19,29 @@ export default function GoogleSignInButton({ onCredential, onError }) {
 
   useEffect(() => {
     if (!clientId || !container.current) return undefined;
+    let renderedWidth = 0;
     const render = () => {
-      window.google?.accounts.id.initialize({
-        client_id: clientId,
-        callback: onCredential,
-        ux_mode: 'popup',
-        auto_select: false,
+      if (!container.current || !window.google) return;
+      const width = Math.min(360, Math.max(180, Math.floor(container.current.getBoundingClientRect().width)));
+      if (renderedWidth === width) return;
+      renderedWidth = width;
+      container.current.replaceChildren();
+      if (!initialized.current) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: onCredential,
+          ux_mode: 'popup',
+          auto_select: false,
+          use_fedcm_for_button: true,
+        });
+        initialized.current = true;
+      }
+      window.google.accounts.id.renderButton(container.current, {
+        theme: 'outline', size: 'large', width, text: 'continue_with',
       });
-      window.google?.accounts.id.renderButton(container.current, { theme: 'outline', size: 'large', width: 360, text: 'continue_with' });
     };
+    const resizeObserver = new ResizeObserver(render);
+    resizeObserver.observe(container.current);
     if (window.google) render();
     else {
       const script = document.createElement('script');
@@ -35,9 +50,12 @@ export default function GoogleSignInButton({ onCredential, onError }) {
       script.onload = render;
       script.onerror = onError;
       document.head.appendChild(script);
-      return () => script.remove();
+      return () => {
+        resizeObserver.disconnect();
+        script.remove();
+      };
     }
-    return undefined;
+    return () => resizeObserver.disconnect();
   }, [clientId, onCredential, onError]);
 
   if (!clientId) {

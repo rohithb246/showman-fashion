@@ -1,11 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FaChild, FaGem, FaPersonRunning, FaShoePrints, FaShirt, FaSnowflake, FaVest } from 'react-icons/fa6';
 import { coreAPI, productAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 import './Home.css';
+
+const categoryPresentation = {
+  accessories: { icon: FaGem, image: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=1200&q=85' },
+  'ethnic-wear': { icon: FaVest, image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=85' },
+  'kids-wear': { icon: FaChild, image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&w=1200&q=85' },
+  'mens-wear': { icon: FaShirt, image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=1200&q=85' },
+  shoes: { icon: FaShoePrints, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=85' },
+  sportswear: { icon: FaPersonRunning, image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=85' },
+  'winter-wear': { icon: FaSnowflake, image: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=1200&q=85' },
+  'womens-wear': { icon: FaShirt, image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=85' },
+};
+
+const getCategoryPresentation = (category) => {
+  const key = category.slug?.toLowerCase() || category.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return categoryPresentation[key] || { icon: FaShirt, image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1200&q=85' };
+};
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -98,20 +115,39 @@ export default function Home() {
           <h2 className="section-title">Shop by Category</h2>
           <p className="section-subtitle">Curated Collections</p>
           <div className="categories-grid">
-            {categories.map((cat, i) => (
-              <motion.div key={cat.id} whileHover={{ scale: 1.03 }} transition={{ delay: i * 0.05 }}>
+            {categories.map((cat, i) => {
+              const presentation = getCategoryPresentation(cat);
+              const CategoryIcon = presentation.icon;
+              const image = cat.display_image || presentation.image;
+              return (
+              <motion.div
+                key={cat.id}
+                className="category-card-motion"
+                initial={{ opacity: 0, y: 22 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.45, delay: Math.min(i * 0.06, 0.36) }}
+              >
                 <Link to={`/shop?category=${cat.slug}`} className="category-card">
-                  <div
-                    className="category-card-bg"
-                    style={cat.display_image ? { backgroundImage: `url(${cat.display_image})` } : undefined}
+                  <img
+                    className="category-card-image"
+                    src={image}
+                    alt=""
+                    loading="lazy"
                   />
+                  <div className="category-card-overlay" aria-hidden="true" />
                   <div className="category-card-copy">
-                    <h3>{cat.name}</h3>
-                    <span>{cat.product_count} items</span>
+                    <span className="category-icon" aria-hidden="true"><CategoryIcon /></span>
+                    <div className="category-card-details">
+                      <h3>{cat.name}</h3>
+                      <span className="category-count">{cat.product_count} {cat.product_count === 1 ? 'item' : 'items'}</span>
+                    </div>
+                    <span className="category-shop-link">Shop Now <span aria-hidden="true">→</span></span>
                   </div>
                 </Link>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

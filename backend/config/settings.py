@@ -200,6 +200,10 @@ GOOGLE_CLIENT_ID = config(
 # HTTPS is terminated by the hosting proxy. This keeps absolute image URLs
 # HTTPS as well, so browsers do not block them as mixed content.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Google Identity Services needs to communicate with its sign-in popup. Django
+# defaults this header to `same-origin`, which leaves the Google popup blank in
+# browsers that have not switched the sign-in flow to FedCM.
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 

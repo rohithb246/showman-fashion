@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import {
   FiGrid, FiPackage, FiShoppingCart, FiUsers, FiTag,
-  FiImage, FiMessageSquare, FiBox, FiLogOut, FiHome,
+  FiImage, FiMessageSquare, FiBox, FiLogOut, FiHome, FiMenu, FiX,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import './AdminLayout.css';
@@ -21,10 +22,29 @@ const navItems = [
 export default function AdminLayout() {
   const { logout, isFullAdmin } = useAuth();
   const visibleNavItems = navItems.filter((item) => !item.fullAdminOnly || isFullAdmin);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar">
+      <header className="admin-mobile-header">
+        <Link to="/admin" className="admin-mobile-brand" onClick={closeMenu}>
+          <img src="/logo.png" alt="The Show Man" />
+          <span>Admin Panel</span>
+        </Link>
+        <button
+          type="button"
+          className="admin-menu-toggle"
+          aria-label={menuOpen ? 'Close admin navigation' : 'Open admin navigation'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? <FiX /> : <FiMenu />}
+        </button>
+      </header>
+      {menuOpen && <button type="button" className="admin-menu-backdrop" aria-label="Close admin navigation" onClick={closeMenu} />}
+      <aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="admin-brand">
           <img src="/logo.png" alt="The Show Man" />
           <span>Admin Panel</span>
@@ -36,6 +56,7 @@ export default function AdminLayout() {
               to={item.to}
               end={item.end}
               className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
+              onClick={closeMenu}
             >
               <item.icon />
               <span>{item.label}</span>
@@ -43,8 +64,8 @@ export default function AdminLayout() {
           ))}
         </nav>
         <div className="admin-sidebar-footer">
-          <Link to="/" className="admin-nav-link"><FiHome /><span>Store</span></Link>
-          <button className="admin-nav-link" onClick={logout}><FiLogOut /><span>Logout</span></button>
+          <Link to="/" className="admin-nav-link" onClick={closeMenu}><FiHome /><span>Store</span></Link>
+          <button className="admin-nav-link" onClick={() => { closeMenu(); logout(); }}><FiLogOut /><span>Logout</span></button>
         </div>
       </aside>
       <div className="admin-main">
