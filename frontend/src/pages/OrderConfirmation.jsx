@@ -5,7 +5,7 @@ export default function OrderConfirmation() {
   return (
     <div className="auth-page">
       <div className="auth-card glass-card">
-        <img src="/logo.png" alt="The Show Man" className="auth-logo" />
+        <img src="/showman-gold-logo.png" alt="The Show Man" className="auth-logo" />
         <h1>Order Confirmed!</h1>
         <p>Thank you for shopping with The Show Man.</p>
         <p><strong>Order: {orderNumber}</strong></p>

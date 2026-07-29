@@ -49,7 +49,7 @@ export default function Register() {
   return (
     <div className="auth-page">
       <div className="auth-card glass-card">
-        <img src="/logo.png" alt="The Show Man" className="auth-logo" />
+        <img src="/showman-gold-logo.png" alt="The Show Man" className="auth-logo" />
         <h1>Join The Show</h1>
         <p className="auth-subtitle">Create your account</p>
         <form onSubmit={handleSubmit}>

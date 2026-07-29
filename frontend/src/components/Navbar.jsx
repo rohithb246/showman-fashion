@@ -55,11 +55,7 @@ export default function Navbar() {
 
         <Link to="/" className="navbar-logo">
           <span className="logo-mark" aria-hidden="true">
-            <img src="/navbar-logo.png" alt="" />
-          </span>
-          <span className="logo-copy">
-            <strong>The Show Man</strong>
-            <small>Dress Like A Showman</small>
+            <img src="/showman-gold-logo.png" alt="" />
           </span>
         </Link>
 

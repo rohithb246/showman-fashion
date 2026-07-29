@@ -24,7 +24,7 @@ export default function ResetPassword() {
   return (
     <div className="auth-page">
       <div className="auth-card glass-card">
-        <img src="/logo.png" alt="The Show Man" className="auth-logo" />
+        <img src="/showman-gold-logo.png" alt="The Show Man" className="auth-logo" />
         <h1>New Password</h1>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
