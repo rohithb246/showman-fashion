@@ -65,7 +65,19 @@ export default function Home() {
   return (
     <div className="home">
       <section className="hero">
-        <div className="hero-bg" aria-hidden="true" />
+        <div className="hero-media" aria-hidden="true">
+          <video
+            className="hero-video"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+          >
+            <source src="/theshowman.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div className="hero-scrim" aria-hidden="true" />
         <div className="hero-grid">
           <motion.div
             className="hero-copy"

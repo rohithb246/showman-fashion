@@ -31,7 +31,11 @@ export default function ProductDetail() {
     productAPI.get(slug).then((r) => {
       setProduct(r.data);
       const variants = r.data.variants || [];
-      const firstAvailable = variants.find((variant) => variant.inventory?.in_stock);
+      const firstAvailable = variants.find((variant) => (
+        variant.inventory?.in_stock
+        && variant.size?.name?.trim()
+        && variant.color?.name?.trim()
+      ));
       if (firstAvailable) {
         setSelectedSize(firstAvailable.size?.id);
         setSelectedColor(firstAvailable.color?.id);
@@ -62,7 +66,11 @@ export default function ProductDetail() {
     ? product.images
     : [{ image: null, alt_text: product.name }];
 
-  const availableVariants = (product.variants || []).filter((variant) => variant.inventory?.in_stock);
+  const availableVariants = (product.variants || []).filter((variant) => (
+    variant.inventory?.in_stock
+    && variant.size?.name?.trim()
+    && variant.color?.name?.trim()
+  ));
   const hasStock = availableVariants.length > 0;
   const selectedVariant = availableVariants.find(
     (v) => v.size?.id === selectedSize && v.color?.id === selectedColor
@@ -175,7 +183,7 @@ export default function ProductDetail() {
               <>
             <div className="variant-selectors">
               <div className="selector-group">
-                <label>Size</label>
+                <label>Size{selectedVariant?.size?.name ? `: ${selectedVariant.size.name}` : ''}</label>
                 <div className="size-options">
                   {sizes.map((s) => (
                     <button
@@ -190,7 +198,7 @@ export default function ProductDetail() {
                 </div>
               </div>
               <div className="selector-group">
-                <label>Color</label>
+                <label>Color{selectedVariant?.color?.name ? `: ${selectedVariant.color.name}` : ''}</label>
                 <div className="color-options">
                   {colors.map((c) => (
                     <button
@@ -223,8 +231,9 @@ export default function ProductDetail() {
             </div>
 
             <div className="product-actions">
-              <button className="btn btn-primary btn-lg" onClick={handleAddToCart}>Add to Cart</button>
-              <button
+              <button type="button" className="btn btn-primary btn-lg add-to-cart-btn" onClick={handleAddToCart}>Add to Cart</button>
+                <button
+                  type="button"
                 className={`btn btn-outline btn-lg ${isInWishlist(product.id) ? 'active' : ''}`}
                 onClick={() => toggleWishlist(product.id)}
               >
