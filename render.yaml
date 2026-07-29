@@ -18,6 +18,24 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        value: 968497314939-k13s816ek41kt5n6doteucesd8aj2cp6.apps.googleusercontent.com
+      # OTPs require these values in the Render service environment. Use a
+      # Gmail App Password for EMAIL_HOST_PASSWORD, never the Gmail password.
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
 
   - type: web
     name: showman-fashion-web

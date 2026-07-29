@@ -189,7 +189,13 @@ EMAIL_HOST_USER = config(
 )
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='The Show Man <noreply@theshowman.com>')
-GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+# OAuth client IDs are public identifiers (not secrets). This default keeps
+# Google sign-in working when a deployment has not yet added the environment
+# variable; deployments may still override it with GOOGLE_CLIENT_ID.
+GOOGLE_CLIENT_ID = config(
+    'GOOGLE_CLIENT_ID',
+    default='968497314939-k13s816ek41kt5n6doteucesd8aj2cp6.apps.googleusercontent.com',
+)
 
 # HTTPS is terminated by the hosting proxy. This keeps absolute image URLs
 # HTTPS as well, so browsers do not block them as mixed content.
