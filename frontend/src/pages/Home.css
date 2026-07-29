@@ -15,7 +15,6 @@
 
 .hero-media { z-index: -2; }
 
-.hero-poster,
 .hero-video {
   position: absolute;
   inset: 0;
@@ -24,16 +23,6 @@
   object-fit: cover;
   object-position: center 24%;
 }
-
-.hero-poster { display: block; }
-
-/* Keep the poster in place until a decoded video frame is available. */
-.hero-video {
-  opacity: 0;
-  transition: opacity 180ms ease-out;
-}
-
-.hero-video.is-ready { opacity: 1; }
 
 .hero-scrim {
   z-index: -1;
@@ -118,7 +107,7 @@
 
 @media (max-width: 640px) {
   .hero { min-height: min(36rem, calc(100svh - 60px)); }
-  .hero-poster, .hero-video { object-position: 58% 20%; }
+  .hero-video { object-position: 58% 20%; }
   .hero-scrim { background: linear-gradient(90deg, rgba(12, 9, 7, 0.63), rgba(12, 9, 7, 0.1)), linear-gradient(0deg, rgba(12, 9, 7, 0.88) 0%, rgba(12, 9, 7, 0.32) 56%, rgba(12, 9, 7, 0.02) 100%); }
   .hero-grid { align-items: flex-end; padding: 1.5rem var(--gutter) 2rem; }
   .hero h1 { max-width: 10.5ch; font-size: clamp(2.25rem, 11vw, 3.4rem); }

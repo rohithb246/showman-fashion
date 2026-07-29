@@ -32,8 +32,6 @@ export default function Home() {
   const [coupon, setCoupon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
-  const [videoSource, setVideoSource] = useState(null);
-  const [videoReady, setVideoReady] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -51,19 +49,6 @@ export default function Home() {
     }).finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    // Let the poster/LCP paint before the browser opens a video connection.
-    // The compact H.264 asset is deliberately requested only after idle time.
-    const loadVideo = () => setVideoSource('/theshowman.mp4');
-    const idleCallback = window.requestIdleCallback?.(loadVideo, { timeout: 1200 });
-    const timeoutId = idleCallback ? null : window.setTimeout(loadVideo, 250);
-
-    return () => {
-      if (idleCallback) window.cancelIdleCallback?.(idleCallback);
-      if (timeoutId) window.clearTimeout(timeoutId);
-    };
-  }, []);
-
   const handleNewsletter = async (e) => {
     e.preventDefault();
     try {
@@ -79,22 +64,16 @@ export default function Home() {
     <div className="home">
       <section className="hero">
         <div className="hero-media" aria-hidden="true">
-          {/* This poster is the LCP image: it is visible before JavaScript and video decoding. */}
-          <img className="hero-poster" src="/hero-desktop.png" alt="" fetchPriority="high" />
-          {videoSource && (
-            <video
-              className={`hero-video ${videoReady ? 'is-ready' : ''}`}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              poster="/hero-desktop.png"
-              onCanPlay={() => setVideoReady(true)}
-            >
-              <source src={videoSource} type="video/mp4" />
-            </video>
-          )}
+          <video
+            className="hero-video"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+          >
+            <source src="/theshowman1.mp4" type="video/mp4" />
+          </video>
         </div>
         <div className="hero-scrim" aria-hidden="true" />
         <div className="hero-grid">
@@ -120,7 +99,6 @@ export default function Home() {
               <span><b>Secure</b> checkout</span>
             </div>
           </motion.div>
-
         </div>
       </section>
 
