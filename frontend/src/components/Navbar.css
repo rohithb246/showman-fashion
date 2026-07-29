@@ -353,10 +353,11 @@
   }
 
   .navbar-inner {
-    /* Keep the logo centered after a customer signs in. */
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    min-height: 68px;
-    gap: 0.65rem;
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    min-height: 60px;
+    gap: 0.35rem;
   }
 
   .menu-toggle {
@@ -364,30 +365,32 @@
   }
 
   .navbar-logo {
-    grid-column: 2;
-    justify-self: center;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    grid-column: auto;
+    transform: translate(-50%, -50%);
   }
 
   .navbar-actions {
     grid-column: 3;
     justify-self: end;
+    min-width: 0;
   }
 
   .navbar-nav {
-    top: 68px;
+    top: 60px;
   }
 
   .logo-mark {
-    width: 46px;
-    height: 46px;
+    width: 40px;
+    height: 40px;
   }
 
-  .logo-copy strong {
-    font-size: 0.94rem;
-  }
-
-  .logo-copy small,
+  .logo-copy,
   .navbar-actions .icon-btn[aria-label='Wishlist'],
+  .navbar-actions .icon-btn[aria-label='Search'],
   .signin-link span,
   .logout-btn {
     display: none;
@@ -397,20 +400,22 @@
   .user-menu { gap: 0; }
 
   .signin-link {
-    width: 42px;
+    width: 38px;
+    min-height: 38px;
     padding: 0;
     margin-left: 0.1rem;
   }
 
   .icon-btn,
   .menu-toggle {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
   }
 }
 
 @media (max-width: 390px) {
-  .logo-copy {
-    display: none;
-  }
+  .navbar-inner { min-height: 56px; }
+  .navbar-nav { top: 56px; }
+  .logo-mark { width: 36px; height: 36px; }
+  .icon-btn, .menu-toggle, .signin-link { width: 34px; height: 34px; min-height: 34px; }
 }

@@ -71,23 +71,21 @@ class AdminUserCreateSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, validators=[validate_password])
-    password_confirm = serializers.CharField(write_only=True)
-
     class Meta:
         model = User
-        fields = ['email', 'username', 'first_name', 'last_name', 'password', 'password_confirm']
+        fields = ['email', 'username']
+
+
+class CompleteRegistrationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    token = serializers.CharField(min_length=6, max_length=6)
+    password = serializers.CharField(validators=[validate_password])
+    password_confirm = serializers.CharField()
 
     def validate(self, data):
         if data['password'] != data['password_confirm']:
             raise serializers.ValidationError({'password_confirm': 'Passwords do not match.'})
         return data
-
-    def create(self, validated_data):
-        validated_data.pop('password_confirm')
-        user = User.objects.create_user(**validated_data)
-        Profile.objects.create(user=user)
-        return user
 
 
 class AddressSerializer(serializers.ModelSerializer):

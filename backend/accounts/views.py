@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from accounts.models import Address, Notification, Profile, EmailVerificationToken, PasswordResetToken
 from accounts.permissions import IsAdminUser, IsFullAdminUser
 from accounts.serializers import (
-    UserSerializer, RegisterSerializer, AddressSerializer, NotificationSerializer,
+    UserSerializer, RegisterSerializer, CompleteRegistrationSerializer, AddressSerializer, NotificationSerializer,
     ChangePasswordSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,
     VerifyEmailSerializer, GoogleAuthSerializer, ProfileSerializer, AdminUserUpdateSerializer,
     AdminUserCreateSerializer,
@@ -41,19 +41,50 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        email = serializer.validated_data['email'].lower()
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={'username': serializer.validated_data['username']},
+        )
+        if not created and user.email_verified:
+            return Response({'detail': 'An account already exists for this email.'}, status=status.HTTP_400_BAD_REQUEST)
+        if created:
+            user.set_unusable_password()
+            user.save(update_fields=['password'])
+            Profile.objects.create(user=user)
         try:
             create_verification_token(user)
         except Exception:
-            user.delete()
+            if created:
+                user.delete()
             return Response(
                 {'detail': 'Unable to send the verification email. Check the SMTP settings and Gmail App Password.'},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
         return Response({
-            'user': UserSerializer(user).data,
             'message': 'A verification code has been sent to your email.',
         }, status=status.HTTP_201_CREATED)
+
+
+class CompleteRegistrationView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = CompleteRegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            token = EmailVerificationToken.objects.get(
+                token=serializer.validated_data['token'], user__email=serializer.validated_data['email'].lower(),
+                expires_at__gt=timezone.now(),
+            )
+        except EmailVerificationToken.DoesNotExist:
+            return Response({'detail': 'Invalid or expired OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+        user = token.user
+        user.set_password(serializer.validated_data['password'])
+        user.email_verified = True
+        user.save(update_fields=['password', 'email_verified'])
+        token.delete()
+        return Response({'detail': 'Registration complete. You can sign in now.'})
 
 
 class GoogleAuthView(APIView):
