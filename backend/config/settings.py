@@ -7,6 +7,7 @@ from pathlib import Path
 
 from decouple import config, Csv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -72,13 +73,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASE_URL = config('DATABASE_URL', default='')
-# A free Render web service can start without a managed database. Configure
-# DATABASE_URL for persistent PostgreSQL; otherwise use temporary SQLite there.
+# SQLite is useful only when explicitly requested for local development. Render
+# web-service filesystems are ephemeral, so silently using SQLite there loses
+# all store data on the next deploy or restart.
 USE_SQLITE = config(
     'USE_SQLITE',
-    default=bool(os.environ.get('RENDER')) and not DATABASE_URL,
+    default=False,
     cast=bool,
 )
+
+if os.environ.get('RENDER') and not DATABASE_URL:
+    raise ImproperlyConfigured(
+        'DATABASE_URL is required on Render. Connect a persistent Postgres database '
+        'instead of using the ephemeral service filesystem.'
+    )
 
 if USE_SQLITE:
     DATABASES = {

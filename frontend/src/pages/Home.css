@@ -1,7 +1,7 @@
 /* Storefront hero — the campaign video is intentionally limited to the public home page. */
 .hero {
   position: relative;
-  min-height: clamp(25rem, 58svh, 38rem);
+  min-height: clamp(22rem, 48svh, 32rem);
   overflow: hidden;
   isolation: isolate;
   background: #110d0b;
@@ -36,14 +36,14 @@
   min-height: inherit;
   max-width: var(--container);
   margin: 0 auto;
-  padding: clamp(2.5rem, 6vw, 6rem) var(--gutter);
+  padding: clamp(2rem, 4vw, 4rem) var(--gutter);
 }
 
 .hero-copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: min(100%, 42rem);
+  width: min(100%, 34rem);
 }
 
 .hero-tag {
@@ -61,7 +61,7 @@
   max-width: 11ch;
   margin: 1.2rem 0;
   color: #fff;
-  font-size: clamp(3rem, 6.4vw, 6.75rem);
+  font-size: clamp(2.35rem, 4.8vw, 4.75rem);
   line-height: 0.9;
   letter-spacing: -0.055em;
   text-transform: uppercase;
@@ -71,15 +71,15 @@
 .hero h1 span { color: var(--gold); }
 
 .hero p {
-  max-width: 34rem;
-  margin: 0 0 2rem;
+  max-width: 29rem;
+  margin: 0 0 1.5rem;
   color: rgba(255, 255, 255, 0.91);
-  font-size: clamp(0.98rem, 1.45vw, 1.15rem);
+  font-size: clamp(0.9rem, 1.2vw, 1.02rem);
   line-height: 1.6;
 }
 
 .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.hero-actions .btn { min-height: 48px; border-radius: 0; }
+.hero-actions .btn { min-height: 44px; padding: 0.7rem 1.15rem; border-radius: 0; font-size: 0.78rem; }
 .hero-outline { border-color: rgba(255, 255, 255, 0.78) !important; color: #fff !important; }
 .hero-outline:hover { border-color: #fff !important; background: #fff !important; color: #111 !important; }
 
@@ -88,7 +88,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.65rem;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.67rem;
   font-weight: 600;
@@ -100,17 +100,17 @@
 .hero-proof i { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
 
 @media (max-width: 900px) {
-  .hero { min-height: clamp(28rem, 62svh, 38rem); }
+  .hero { min-height: clamp(25rem, 54svh, 32rem); }
   .hero-scrim { background: linear-gradient(90deg, rgba(12, 9, 7, 0.77), rgba(12, 9, 7, 0.18)), linear-gradient(0deg, rgba(12, 9, 7, 0.42), transparent 56%); }
 }
 
 @media (max-width: 640px) {
-  .hero { min-height: min(42rem, calc(100svh - 60px)); }
+  .hero { min-height: min(36rem, calc(100svh - 60px)); }
   .hero-video { object-position: 58% 20%; }
   .hero-scrim { background: linear-gradient(90deg, rgba(12, 9, 7, 0.63), rgba(12, 9, 7, 0.1)), linear-gradient(0deg, rgba(12, 9, 7, 0.88) 0%, rgba(12, 9, 7, 0.32) 56%, rgba(12, 9, 7, 0.02) 100%); }
-  .hero-grid { align-items: flex-end; padding: 2rem var(--gutter) 2.5rem; }
-  .hero h1 { max-width: 10.5ch; font-size: clamp(2.8rem, 13vw, 4.4rem); }
-  .hero p { margin-bottom: 1.5rem; font-size: 0.96rem; }
+  .hero-grid { align-items: flex-end; padding: 1.5rem var(--gutter) 2rem; }
+  .hero h1 { max-width: 10.5ch; font-size: clamp(2.25rem, 11vw, 3.4rem); }
+  .hero p { margin-bottom: 1.25rem; font-size: 0.9rem; }
   .hero-actions { width: 100%; }
   .hero-actions .btn { flex: 1 1 10.5rem; }
   .hero-proof { margin-top: 1.35rem; font-size: 0.58rem; }
