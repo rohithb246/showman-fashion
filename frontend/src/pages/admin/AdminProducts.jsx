@@ -158,11 +158,10 @@ export default function AdminProducts() {
   const chooseVariant = (variantId) => {
     const variant = variants.find((item) => String(item.id) === String(variantId));
     if (!variant) {
-      setStockForm({
-        ...emptyStock,
-        size_ids: uniqueOptionIds(variants, 'size'),
-        color_ids: uniqueOptionIds(variants, 'color'),
-      });
+      // Choosing "Add new" starts with no selected combinations. It must not
+      // inherit all existing options, because that makes a standard edit look
+      // like a bulk stock update.
+      setStockForm(emptyStock);
       setInventoryTouched(false);
       return;
     }
