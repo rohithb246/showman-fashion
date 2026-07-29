@@ -66,8 +66,7 @@ export default function ProductCard({ product, index = 0 }) {
             />
           ) : (
             <div className="product-placeholder">
-              <img src="/hero-desktop.png" alt="" className="product-fallback-image" />
-              <span>THE SHOW MAN</span>
+              <span>Image coming soon</span>
             </div>
           )}
           {hasDiscount && <span className="badge badge-sale">-{discount}%</span>}

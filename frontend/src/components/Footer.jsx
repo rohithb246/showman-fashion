@@ -7,7 +7,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="container footer-grid">
         <div className="footer-brand">
-          <img src="/showman-gold-logo.png" alt="The Show Man" className="footer-logo" />
+          <img src="/showman-monogram-black.png" alt="The Show Man" className="footer-logo" />
           <p>Dress Like A Showman. Premium luxury fashion for those who command the spotlight.</p>
           <div className="footer-social">
             <a href="#" aria-label="Instagram"><FiInstagram /></a>

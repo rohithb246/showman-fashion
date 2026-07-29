@@ -37,7 +37,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card glass-card">
-        <img src="/showman-gold-logo.png" alt="The Show Man" className="auth-logo" />
+        <img src="/showman-monogram-black.png" alt="The Show Man" className="auth-logo" />
         <h1>Welcome Back</h1>
         <p className="auth-subtitle">Sign in to your account</p>
         <form onSubmit={handleSubmit}>

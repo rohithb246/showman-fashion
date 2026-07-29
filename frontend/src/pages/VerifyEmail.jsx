@@ -30,7 +30,7 @@ export default function VerifyEmail() {
   };
 
   return <div className="auth-page"><div className="auth-card glass-card">
-    <img src="/showman-gold-logo.png" alt="The Show Man" className="auth-logo" />
+    <img src="/showman-monogram-black.png" alt="The Show Man" className="auth-logo" />
     <h1>Verify your email</h1>
     <p className="auth-subtitle">Enter the six-digit code sent to your inbox.</p>
     <form onSubmit={verify}>

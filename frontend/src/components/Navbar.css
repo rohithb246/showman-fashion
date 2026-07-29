@@ -57,8 +57,8 @@
 .logo-mark {
   display: grid;
   place-items: center;
-  width: 154px;
-  height: 66px;
+  width: 54px;
+  height: 54px;
   overflow: hidden;
   border: 0;
   border-radius: 0;
@@ -433,7 +433,7 @@
     top: 60px;
   }
 
-  .logo-mark { width: 112px; height: 48px; }
+  .logo-mark { width: 42px; height: 42px; }
 
   .logo-copy,
   .navbar-actions .icon-btn[aria-label='Wishlist'],
@@ -463,6 +463,6 @@
 @media (max-width: 390px) {
   .navbar-inner { min-height: 56px; }
   .navbar-nav { top: 56px; }
-  .logo-mark { width: 96px; height: 42px; }
+  .logo-mark { width: 38px; height: 38px; }
   .icon-btn, .menu-toggle, .signin-link { width: 34px; height: 34px; min-height: 34px; }
 }

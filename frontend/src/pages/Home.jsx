@@ -90,23 +90,6 @@ export default function Home() {
             </div>
           </motion.div>
 
-          <motion.div
-            className="hero-image-col"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.15 }}
-          >
-            <picture>
-              <source media="(max-width: 600px)" srcSet="/hero-mobile.png" />
-              <source media="(max-width: 1024px)" srcSet="/hero-tablet.png" />
-              <source media="(min-width: 1600px)" srcSet="/hero-desktop-xl.png" />
-              <img
-                src="/hero-desktop.png"
-                alt="The Show Man luxury fashion model"
-                className="hero-model"
-              />
-            </picture>
-          </motion.div>
         </div>
       </section>
 

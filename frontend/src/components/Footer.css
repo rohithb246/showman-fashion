@@ -1,6 +1,7 @@
 .footer {
-  background: linear-gradient(180deg, var(--purple-dark), var(--black));
-  color: var(--gray-300);
+  background: #fff;
+  border-top: 1px solid #111;
+  color: var(--gray-700);
   margin-top: auto;
 }
 
@@ -14,6 +15,7 @@
 .footer-logo {
   height: 80px;
   margin-bottom: 1rem;
+  filter: grayscale(1) brightness(0);
 }
 
 .footer-brand p {
@@ -34,21 +36,21 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  border: 1px solid #111;
   border-radius: 50%;
-  color: var(--gold);
+  color: #111;
   font-size: 1.1rem;
   transition: all 0.3s;
 }
 
 .footer-social a:hover {
-  background: var(--gold);
-  color: var(--purple-dark);
+  background: #111;
+  color: #fff;
   transform: translateY(-3px);
 }
 
 .footer-links h4 {
-  color: var(--gold);
+  color: #111;
   font-family: var(--font-body);
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -63,10 +65,10 @@
   transition: color 0.3s;
 }
 
-.footer-links a:hover { color: var(--gold); }
+.footer-links a:hover { color: #555; }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 215, 0, 0.1);
+  border-top: 1px solid #e5e5e5;
   padding: 1.5rem 0;
   text-align: center;
   font-size: 0.8rem;

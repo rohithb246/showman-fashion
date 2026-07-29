@@ -7,7 +7,7 @@ export default function PaymentFailure() {
   return (
     <div className="auth-page">
       <div className="auth-card glass-card">
-        <img src="/showman-gold-logo.png" alt="The Show Man" className="auth-logo" />
+        <img src="/showman-monogram-black.png" alt="The Show Man" className="auth-logo" />
         <h1>Payment Failed</h1>
         <p>Unfortunately, your payment could not be processed.</p>
         {orderNumber && <p>Order: <strong>{orderNumber}</strong></p>}

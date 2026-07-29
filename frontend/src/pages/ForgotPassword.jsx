@@ -18,7 +18,7 @@ export default function ForgotPassword() {
   return (
     <div className="auth-page">
       <div className="auth-card glass-card">
-        <img src="/showman-gold-logo.png" alt="The Show Man" className="auth-logo" />
+        <img src="/showman-monogram-black.png" alt="The Show Man" className="auth-logo" />
         <h1>Reset Password</h1>
         {sent ? (
           <p>Check your email for reset instructions.</p>

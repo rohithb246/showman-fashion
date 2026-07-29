@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #fafafa, #f5f1e5);
+  background: #fafafa;
 }
 
 .auth-card {
@@ -17,6 +17,7 @@
 .auth-logo {
   height: 100px;
   margin: 0 auto 1.5rem;
+  filter: grayscale(1) brightness(0);
 }
 
 .auth-card h1 {

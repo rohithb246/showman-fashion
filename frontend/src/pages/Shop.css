@@ -72,7 +72,7 @@
   border: 1px solid rgba(255, 215, 0, 0.42);
   border-radius: 999px;
   background: rgba(12, 3, 14, 0.28);
-  color: var(--gold);
+  color: #fff;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -118,12 +118,12 @@
 }
 
 .filters-header h3 {
-  color: #fff8e4;
+  color: #fff;
   font-size: 1.25rem;
 }
 
 .filters-header .btn {
-  color: var(--gold);
+  color: #fff;
 }
 
 .filter-group {
@@ -286,3 +286,13 @@
     display: none;
   }
 }
+
+/* Keep browse controls monochrome at every breakpoint. */
+.shop-header::before, .shop-header::after { border-color: rgba(255, 255, 255, 0.36); }
+.shop-kicker, .shop-kicker::before, .shop-kicker::after { color: #fff; }
+.shop-header p { border-color: rgba(255, 255, 255, 0.55); background: transparent; }
+.shop-filters { background: #fff; border: 1px solid #e3e3e3; box-shadow: none; }
+.filters-header { background: #111; border-color: #111; }
+.filter-option:hover { background: #f4f4f4; color: #111; }
+.chip { border-color: #cfcfcf; background: #fff; color: #111; }
+.chip.active, .chip:hover { background: #111; color: #fff; border-color: #111; }
