@@ -45,7 +45,8 @@ services:
     runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: ./frontend/dist
+    # rootDir is already frontend, so this must not include frontend again.
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
         sync: false

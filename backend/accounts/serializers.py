@@ -71,6 +71,12 @@ class AdminUserCreateSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    # Do not use ModelSerializer's automatic unique validators here. An
+    # unverified customer must be able to submit the same address again and
+    # receive a fresh OTP after a delivery failure or an expired code.
+    email = serializers.EmailField()
+    username = serializers.CharField(max_length=150)
+
     class Meta:
         model = User
         fields = ['email', 'username']

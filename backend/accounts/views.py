@@ -45,15 +45,18 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email'].lower()
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={'username': serializer.validated_data['username']},
-        )
-        if not created and user.email_verified:
+        user = User.objects.filter(email=email).first()
+        created = user is None
+        if user and user.email_verified:
             return Response({'detail': 'An account already exists for this email.'}, status=status.HTTP_400_BAD_REQUEST)
         if created:
+            username = serializer.validated_data['username'].strip()
+            if User.objects.filter(username=username).exists():
+                return Response({'detail': 'This username is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+            user = User(email=email, username=username)
+        if created:
             user.set_unusable_password()
-            user.save(update_fields=['password'])
+            user.save()
             Profile.objects.create(user=user)
         try:
             create_verification_token(user)
@@ -300,6 +303,12 @@ class ResendVerificationCodeView(APIView):
             create_verification_token(user)
         except User.DoesNotExist:
             pass
+        except Exception:
+            logger.exception('Verification OTP email delivery failed for %s', email)
+            return Response(
+                {'detail': 'Unable to send the verification email. Check the SMTP settings and Gmail App Password.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         return Response({'detail': 'If the account exists, a new code has been sent.'})
 
 

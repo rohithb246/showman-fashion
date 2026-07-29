@@ -93,10 +93,16 @@ export default function AdminProducts() {
     () => subcategories.filter((subcategory) => String(subcategory.category) === String(form.category_id)),
     [form.category_id, subcategories]
   );
+  const stockFieldsDisabled = Boolean(
+    selectedProduct
+    && !stockForm.variant_id
+    && !(stockForm.size_ids.length && stockForm.color_ids.length)
+  );
 
   const loadData = async () => {
     const [productRes, categoryRes, subcategoryRes, sizeRes, colorRes] = await Promise.all([
-      productAPI.list({ page_size: 100, include_inactive: true }),
+      // A timestamp prevents browsers/proxies from showing the pre-save list.
+      productAPI.list({ page_size: 100, include_inactive: true, refresh: Date.now() }),
       productAPI.categories(),
       productAPI.subcategories(),
       productAPI.sizes(),
@@ -122,30 +128,31 @@ export default function AdminProducts() {
   };
 
   const editProduct = async (product) => {
-    const { data } = await productAPI.get(product.slug, { include_inactive: true });
-    const productVariants = data.variants || [];
-    setSelectedProduct(data);
-    setForm({
-      name: data.name,
-      slug: data.slug,
-      brand_name: data.brand_name || '',
-      description: data.description,
-      category_id: data.category?.id || '',
-      subcategory_id: data.subcategory?.id || '',
-      base_price: data.base_price,
-      sale_price: data.sale_price || '',
-      is_active: data.is_active,
-      is_featured: data.is_featured,
-      is_new_arrival: data.is_new_arrival,
-      is_trending: data.is_trending,
-    });
-    setStockForm({
-      ...emptyStock,
-      size_ids: uniqueOptionIds(productVariants, 'size'),
-      color_ids: uniqueOptionIds(productVariants, 'color'),
-    });
-    setImageFile(null);
-    setInventoryTouched(false);
+    try {
+      const { data } = await productAPI.get(product.slug, { include_inactive: true, refresh: product.id });
+      setSelectedProduct(data);
+      setForm({
+        name: data.name,
+        slug: data.slug,
+        brand_name: data.brand_name || '',
+        description: data.description,
+        category_id: data.category?.id || '',
+        subcategory_id: data.subcategory?.id || '',
+        base_price: data.base_price,
+        sale_price: data.sale_price || '',
+        is_active: data.is_active,
+        is_featured: data.is_featured,
+        is_new_arrival: data.is_new_arrival,
+        is_trending: data.is_trending,
+      });
+      // Keep the option builder empty in edit mode. Existing variants are only
+      // changed after explicitly selecting one from the dropdown below.
+      setStockForm(emptyStock);
+      setImageFile(null);
+      setInventoryTouched(false);
+    } catch (error) {
+      toast.error(apiErrorMessage(error));
+    }
   };
 
   const chooseVariant = (variantId) => {
@@ -227,19 +234,6 @@ export default function AdminProducts() {
       return;
     }
 
-    const selectedMatrix = new Set(
-      selectedSizeIds.flatMap((sizeId) => selectedColorIds.map((colorId) => `${sizeId}:${colorId}`))
-    );
-    const variantsToHide = variants.filter((variant) => (
-      !selectedMatrix.has(`${variant.size?.id}:${variant.color?.id}`)
-    ));
-
-    for (const variant of variantsToHide) {
-      if (variant.is_active) {
-        await productAPI.updateVariant(variant.id, { is_active: false });
-      }
-    }
-
     const existingByOption = new Map(
       variants.map((variant) => [`${variant.size?.id}:${variant.color?.id}`, variant])
     );
@@ -291,7 +285,11 @@ export default function AdminProducts() {
 
   const saveStock = async (productId, productSlug) => {
     if (selectedProduct && !stockForm.variant_id) {
-      await syncProductOptions(productId);
+      // Editing product information must never alter stock unless the admin
+      // intentionally selects at least one new size and one new colour.
+      if (stockForm.size_ids.length || stockForm.color_ids.length) {
+        await syncProductOptions(productId);
+      }
       return;
     }
     if (!stockForm.variant_id && stockForm.size_ids.length && stockForm.color_ids.length) {
@@ -361,6 +359,12 @@ export default function AdminProducts() {
       const product = response.data;
       await saveImage(product.id, product.name);
       await saveStock(product.id, product.slug);
+      // Do not rely on the PATCH response or stale component state. Reload the
+      // edited object first, then reload the table from the server of record.
+      if (selectedProduct) {
+        const refreshed = await productAPI.get(product.slug, { include_inactive: true, refresh: product.updated_at || product.id });
+        setSelectedProduct(refreshed.data);
+      }
       await loadData();
       resetForm();
       toast.success('Product saved');
@@ -482,7 +486,7 @@ export default function AdminProducts() {
         <div className="admin-section-title">Product Options and Stock</div>
         {selectedProduct && (
           <label className="admin-select-row">
-            Edit Existing Size
+            Edit Existing Size / Colour Stock
             <select className="admin-input" value={stockForm.variant_id} onChange={(e) => chooseVariant(e.target.value)}>
               <option value="">Add new size/color stock</option>
               {variants.map((variant) => (
@@ -527,7 +531,7 @@ export default function AdminProducts() {
               </div>
             </div>
             <p className="admin-muted">
-              Every selected size will be combined with every selected color.
+              Select sizes and colours only to add new combinations. Existing stock is unchanged unless you choose an existing option above.
             </p>
           </div>
         )}
@@ -556,14 +560,14 @@ export default function AdminProducts() {
           </label>
           <label>
             Quantity
-            <input className="admin-input" type="number" min="0" value={stockForm.quantity} onChange={(e) => updateStockForm('quantity', e.target.value)} />
+            <input className="admin-input" type="number" min="0" disabled={stockFieldsDisabled} value={stockForm.quantity} onChange={(e) => updateStockForm('quantity', e.target.value)} />
           </label>
           <label>
             Low Stock Alert
-            <input className="admin-input" type="number" min="0" value={stockForm.low_stock_threshold} onChange={(e) => updateStockForm('low_stock_threshold', e.target.value)} />
+            <input className="admin-input" type="number" min="0" disabled={stockFieldsDisabled} value={stockForm.low_stock_threshold} onChange={(e) => updateStockForm('low_stock_threshold', e.target.value)} />
           </label>
           <label className="admin-check-field">
-            <input type="checkbox" checked={stockForm.is_active} onChange={(e) => updateStockForm('is_active', e.target.checked)} />
+            <input type="checkbox" disabled={stockFieldsDisabled} checked={stockForm.is_active} onChange={(e) => updateStockForm('is_active', e.target.checked)} />
             Show Option
           </label>
         </div>
