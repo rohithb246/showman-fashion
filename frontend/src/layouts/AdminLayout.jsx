@@ -30,7 +30,7 @@ export default function AdminLayout() {
     <div className="admin-layout">
       <header className="admin-mobile-header">
         <Link to="/admin" className="admin-mobile-brand" onClick={closeMenu}>
-          <img src="/showman-gold-logo.png" alt="The Show Man" />
+          <img src="/navbar-logo.png" alt="The Show Man" />
           <span>Admin Panel</span>
         </Link>
         <button
@@ -46,7 +46,7 @@ export default function AdminLayout() {
       {menuOpen && <button type="button" className="admin-menu-backdrop" aria-label="Close admin navigation" onClick={closeMenu} />}
       <aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="admin-brand">
-          <img src="/showman-gold-logo.png" alt="The Show Man" />
+          <img src="/navbar-logo.png" alt="The Show Man" />
           <span>Admin Panel</span>
         </div>
         <nav className="admin-nav">
