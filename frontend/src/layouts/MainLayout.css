@@ -6,4 +6,14 @@
 
 .main-content {
   flex: 1;
+  animation: page-enter 280ms ease-out both;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-content { animation: none; }
 }

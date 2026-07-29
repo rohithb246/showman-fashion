@@ -21,6 +21,15 @@
   --radius: 14px;
   --radius-lg: 20px;
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --container: 1400px;
+  --gutter: 2.5rem;
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,6 +44,8 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
+
+#root { min-width: 0; }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
@@ -60,9 +71,9 @@ input, select, textarea {
 
 .container {
   width: 100%;
-  max-width: 1280px;
+  max-width: var(--container);
   margin: 0 auto;
-  padding: 0 1.25rem;
+  padding-inline: var(--gutter);
 }
 
 .btn {
@@ -70,7 +81,8 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.75rem;
+  min-height: 44px;
+  padding: 0.75rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -99,6 +111,11 @@ input, select, textarea {
 .btn-secondary:hover {
   background: var(--gold-dark);
   transform: translateY(-2px);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.72);
+  outline-offset: 3px;
 }
 
 .btn-danger {
@@ -200,8 +217,9 @@ input, select, textarea {
 
 .grid-products {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-md);
+  align-items: stretch;
 }
 
 .page-header {
@@ -253,11 +271,12 @@ input, select, textarea {
 .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
 
 @media (max-width: 768px) {
-  .container { padding: 0 1rem; }
+  :root { --gutter: 1.5rem; }
   .grid-products { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 }
 
 @media (max-width: 480px) {
+  :root { --gutter: 1rem; }
   .grid-products { grid-template-columns: 1fr; }
   .page-header { padding: 2rem 1rem; }
   .btn-lg { width: 100%; padding: 0.9rem 1rem; }

@@ -3,10 +3,7 @@
   isolation: isolate;
   overflow: hidden;
   padding: clamp(2rem, 4.5vw, 3.1rem) 1.25rem;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 215, 0, 0.2), transparent 24%),
-    radial-gradient(circle at 86% 34%, rgba(255, 215, 0, 0.16), transparent 22%),
-    linear-gradient(135deg, #220129 0%, #4a0560 52%, #220129 100%);
+  background: #111;
 }
 
 .shop-header::before,
@@ -117,9 +114,7 @@
   margin: -1.35rem -1.35rem 1.25rem;
   padding: 1.15rem 1.35rem;
   border-bottom: 1px solid rgba(255, 215, 0, 0.22);
-  background:
-    radial-gradient(circle at 94% 0%, rgba(255, 215, 0, 0.2), transparent 28%),
-    linear-gradient(135deg, var(--purple-dark), var(--purple));
+  background: var(--black);
 }
 
 .filters-header h3 {

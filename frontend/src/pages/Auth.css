@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, rgba(74, 5, 96, 0.05), rgba(255, 215, 0, 0.08));
+  background: linear-gradient(135deg, #fafafa, #f5f1e5);
 }
 
 .auth-card {

@@ -16,7 +16,7 @@ DEBUG = config('DEBUG', default=not bool(os.environ.get('RENDER')), cast=bool)
 # Set ALLOWED_HOSTS explicitly when using a custom domain.
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1,.onrender.com',
+    default='localhost,127.0.0.1,.onrender.com,showmant.in,www.showmant.in',
     cast=Csv(),
 )
 
@@ -170,7 +170,7 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://127.0.0.1:5173',
+    default='http://localhost:5173,http://127.0.0.1:5173,https://showmant.in,https://www.showmant.in',
     cast=Csv(),
 )
 CORS_ALLOW_CREDENTIALS = True

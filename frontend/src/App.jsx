@@ -38,7 +38,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <Toaster position="top-right" toastOptions={{
-            style: { background: '#4A0560', color: '#FFD700', fontFamily: 'Montserrat' },
+            style: { background: '#111111', color: '#FFFFFF', fontFamily: 'Inter' },
           }} />
           <Routes>
             <Route element={<MainLayout />}>
