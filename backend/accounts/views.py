@@ -87,6 +87,20 @@ class CompleteRegistrationView(APIView):
         return Response({'detail': 'Registration complete. You can sign in now.'})
 
 
+class VerifyRegistrationOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        token_value = request.data.get('token', '').strip()
+        valid = EmailVerificationToken.objects.filter(
+            user__email=email, token=token_value, expires_at__gt=timezone.now()
+        ).exists()
+        if not valid:
+            return Response({'detail': 'Invalid or expired OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'OTP verified. Set your password.'})
+
+
 class GoogleAuthView(APIView):
     permission_classes = [AllowAny]
 

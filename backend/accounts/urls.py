@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from accounts.views import (
-    CustomTokenObtainPairView, RegisterView, CompleteRegistrationView, GoogleAuthView, LogoutView, ProfileView,
+    CustomTokenObtainPairView, RegisterView, CompleteRegistrationView, VerifyRegistrationOTPView, GoogleAuthView, LogoutView, ProfileView,
     ProfileDetailUpdateView, AddressListCreateView, AddressDetailView,
     NotificationListView, mark_notification_read, ChangePasswordView,
     ForgotPasswordView, ResetPasswordView, VerifyEmailView,
@@ -12,6 +12,7 @@ from accounts.views import (
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('register/complete/', CompleteRegistrationView.as_view(), name='complete_registration'),
+    path('register/verify-otp/', VerifyRegistrationOTPView.as_view(), name='verify_registration_otp'),
     path('google/', GoogleAuthView.as_view(), name='google_auth'),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),

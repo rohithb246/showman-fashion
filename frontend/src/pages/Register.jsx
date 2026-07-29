@@ -23,6 +23,8 @@ export default function Register() {
         setStep(2);
       } else if (step === 2) {
         if (form.token.length !== 6) throw new Error('Enter the six-digit OTP.');
+        await authAPI.verifyRegistrationOTP({ email: form.email, token: form.token });
+        toast.success('OTP verified. Set your password.');
         setStep(3);
       } else {
         await authAPI.completeRegistration(form);
@@ -78,7 +80,6 @@ export default function Register() {
         </form>
         <div className="auth-divider">or</div>
         <GoogleSignInButton onCredential={handleGoogle} onError={() => toast.error('Google sign-in is unavailable')} />
-        <p className="auth-footer"><Link to="/verify-email">Already have an OTP? Enter it here</Link></p>
         <p className="auth-footer">Already have an account? <Link to="/login">Sign In</Link></p>
       </div>
     </div>
