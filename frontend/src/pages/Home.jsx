@@ -115,7 +115,7 @@ export default function Home() {
           <h2 className="section-title">Shop by Category</h2>
           <p className="section-subtitle">Curated Collections</p>
           <div className="categories-grid">
-            {categories.map((cat, i) => {
+            {categories.filter((cat) => Number(cat.product_count) > 0).map((cat, i) => {
               const presentation = getCategoryPresentation(cat);
               const CategoryIcon = presentation.icon;
               const image = cat.display_image || presentation.image;
