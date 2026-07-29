@@ -38,6 +38,13 @@ class NewsletterSubscribeView(APIView):
         )
 
 
+class PublicConfigView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({'google_client_id': settings.GOOGLE_CLIENT_ID})
+
+
 class ContactAdminListView(generics.ListAPIView):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactAdminSerializer

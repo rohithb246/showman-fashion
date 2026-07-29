@@ -72,6 +72,7 @@ export default function Register() {
         </form>
         <div className="auth-divider">or</div>
         <GoogleSignInButton onCredential={handleGoogle} onError={() => toast.error('Google sign-in is unavailable')} />
+        <p className="auth-footer"><Link to="/verify-email">Already have an OTP? Enter it here</Link></p>
         <p className="auth-footer">Already have an account? <Link to="/login">Sign In</Link></p>
       </div>
     </div>
