@@ -74,7 +74,7 @@ export default function Home() {
             playsInline
             preload="metadata"
           >
-            <source src="/theshowman.mp4" type="video/mp4" />
+            <source src="/theshowman1.mp4" type="video/mp4" />
           </video>
         </div>
         <div className="hero-scrim" aria-hidden="true" />
@@ -233,3 +233,4 @@ function ProductSection({ title, subtitle, products, link }) {
     </section>
   );
 }
+
