@@ -215,6 +215,18 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 
+# ---------------------------------------------------------------------------
+# Media storage — Cloudinary when CLOUDINARY_URL is set, local otherwise.
+# On Render (or any ephemeral filesystem) set CLOUDINARY_URL in env vars so
+# uploaded product images survive every deploy / container restart.
+# ---------------------------------------------------------------------------
+CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
+if CLOUDINARY_URL:
+    import cloudinary
+    cloudinary.config(cloudinary_url=CLOUDINARY_URL)
+    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID', default='')
 RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET', default='')
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')

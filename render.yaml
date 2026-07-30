@@ -39,6 +39,9 @@ services:
         sync: false
       - key: DEFAULT_FROM_EMAIL
         sync: false
+      # Cloudinary - paste your cloudinary:// URL here to persist uploaded images
+      - key: CLOUDINARY_URL
+        sync: false
 
   - type: web
     name: showman-fashion-web

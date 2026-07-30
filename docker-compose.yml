@@ -33,7 +33,6 @@ services:
       dockerfile: Dockerfile
     command: gunicorn config.wsgi:application -c gunicorn.conf.py
     volumes:
-      - ./backend:/app
       - media_data:/app/media
     ports:
       - "8000:8000"
