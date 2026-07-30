@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import IsAdminUser
+from accounts.services import send_newsletter_welcome_email
 from core.models import ContactMessage, NewsletterSubscriber, AdminLog
 from core.serializers import ContactMessageSerializer, ContactAdminSerializer, NewsletterSubscriberSerializer
 
@@ -32,8 +33,14 @@ class NewsletterSubscribeView(APIView):
             subscriber.is_active = True
             subscriber.save(update_fields=['is_active'])
             created = True
+        if created:
+            try:
+                send_newsletter_welcome_email(email)
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception('Newsletter welcome email failed for %s', email)
         return Response(
-            {'detail': 'You are subscribed to new-item alerts.'},
+            {'detail': 'Welcome to The Show! Check your inbox for a confirmation email.'},
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
 

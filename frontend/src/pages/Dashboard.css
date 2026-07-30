@@ -129,9 +129,16 @@
 
 @media (max-width: 768px) {
   .dashboard-layout { grid-template-columns: 1fr; }
-  .dashboard-sidebar { display: flex; gap: 0.4rem; overflow-x: auto; padding: 0.7rem; }
+  .dashboard-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    overflow-x: visible;
+    padding: 0.7rem;
+  }
   .dashboard-sidebar h3 { display: none; }
   .dash-tab { flex: 0 0 auto; width: auto; margin: 0; white-space: nowrap; }
+  .dash-tab-logout { flex-basis: 100%; text-align: center; margin-top: 0.2rem; }
   .dash-tab:hover, .dash-tab:focus-visible { transform: translateY(-1px); }
   .dash-tab::before { top: auto; bottom: 0.3rem; left: 50%; width: 0; height: 3px; transform: translateX(-50%); transition: width 180ms ease; }
   .dash-tab.active::before { width: 45%; height: 3px; }

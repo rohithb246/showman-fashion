@@ -14,14 +14,18 @@ def generate_token():
 
 
 def _attach_logo(email):
-    """Embed the logo so branded emails work even when remote images are blocked."""
-    logo_path = settings.FRONTEND_DIST / 'logo.png'
-    if logo_path.is_file():
+    """Embed the logo — skip silently if the file is not present (e.g. on Render)."""
+    try:
+        logo_path = settings.FRONTEND_DIST / 'logo.png'
+        if not logo_path.is_file():
+            return
         from email.mime.image import MIMEImage
         logo = MIMEImage(logo_path.read_bytes())
         logo.add_header('Content-ID', '<showman-logo>')
         logo.add_header('Content-Disposition', 'inline', filename='logo.png')
         email.attach(logo)
+    except Exception:
+        pass
 
 
 def send_verification_email(user, otp):
@@ -74,6 +78,24 @@ def create_verification_token(user):
     )
     send_verification_email(user, token)
     return token
+
+
+def send_newsletter_welcome_email(email):
+    subject = 'Welcome to The Show Man Newsletter'
+    text = 'Thank you for subscribing to The Show Man. You will be the first to know about new arrivals and exclusive offers.'
+    html = f'''<!doctype html><html><body style="margin:0;background:#f6f2f7;font-family:Arial,sans-serif;color:#2d0339">
+      <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:18px;overflow:hidden">
+        <div style="padding:28px;background:#2d0339;text-align:center"><img src="cid:showman-logo" alt="The Show Man" style="width:70px;height:70px;border-radius:50%;object-fit:contain"><h1 style="margin:14px 0 0;color:#ffd700;font-size:22px;letter-spacing:3px">THE SHOW MAN</h1></div>
+        <div style="padding:32px;text-align:center">
+          <p style="font-size:19px;font-weight:700;color:#2d0339">Welcome to The Show!</p>
+          <p style="color:#666;line-height:1.7">Thank you for subscribing. You will be the first to know about new arrivals, exclusive collections, and special offers.</p>
+          <a href="https://showmant.in/shop" style="display:inline-block;margin-top:20px;padding:14px 32px;background:#ffd700;color:#2d0339;font-weight:700;font-size:15px;text-decoration:none;border-radius:4px">Shop Now</a>
+        </div>
+      </div></body></html>'''
+    mail = EmailMultiAlternatives(subject, text, settings.DEFAULT_FROM_EMAIL, [email])
+    mail.attach_alternative(html, 'text/html')
+    _attach_logo(mail)
+    mail.send(fail_silently=False)
 
 
 def create_password_reset_token(user):

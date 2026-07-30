@@ -440,13 +440,20 @@
   .logo-copy,
   .navbar-actions .icon-btn[aria-label='Wishlist'],
   .navbar-actions .icon-btn[aria-label='Search'],
-  .signin-link span,
-  .logout-btn {
+  .signin-link span {
     display: none;
   }
 
   .navbar-actions { gap: 0.15rem; }
   .user-menu { gap: 0; }
+
+  .logout-btn {
+    display: inline-flex !important;
+    font-size: 0.62rem !important;
+    padding: 0 0.45rem !important;
+    min-height: 34px;
+    white-space: nowrap;
+  }
 
   .signin-link {
     width: 38px;
