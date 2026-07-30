@@ -63,6 +63,20 @@
 
 .dash-tab.active::before { height: 55%; }
 
+.dash-tab-logout {
+  margin-top: 0.5rem;
+  border-color: transparent;
+  color: #c0392b;
+}
+
+.dash-tab-logout:hover,
+.dash-tab-logout:focus-visible {
+  border-color: #c0392b;
+  background: #fff0ee;
+  color: #c0392b;
+  transform: translateX(2px);
+}
+
 .dashboard-main > div {
   min-height: 280px;
   padding: clamp(1.25rem, 3vw, 2rem);

@@ -145,9 +145,16 @@ export default function AdminProducts() {
         is_new_arrival: data.is_new_arrival,
         is_trending: data.is_trending,
       });
-      // Keep the option builder empty in edit mode. Existing variants are only
-      // changed after explicitly selecting one from the dropdown below.
-      setStockForm(emptyStock);
+      // Pre-populate size_ids and color_ids from existing active variants
+      // so the chip builder reflects the current state of the product.
+      const existingVariants = data.variants || [];
+      const existingSizeIds = [...new Set(existingVariants.map((v) => v.size?.id).filter(Boolean))];
+      const existingColorIds = [...new Set(existingVariants.map((v) => v.color?.id).filter(Boolean))];
+      setStockForm({
+        ...emptyStock,
+        size_ids: existingSizeIds,
+        color_ids: existingColorIds,
+      });
       setImageFile(null);
       setInventoryTouched(false);
     } catch (error) {
@@ -358,14 +365,16 @@ export default function AdminProducts() {
       const product = response.data;
       await saveImage(product.id, product.name);
       await saveStock(product.id, product.slug);
-      // Do not rely on the PATCH response or stale component state. Reload the
-      // edited object first, then reload the table from the server of record.
-      if (selectedProduct) {
-        const refreshed = await productAPI.get(product.slug, { include_inactive: true, refresh: product.updated_at || product.id });
-        setSelectedProduct(refreshed.data);
-      }
       await loadData();
-      resetForm();
+      // After save, reload the edited product so images and variants stay visible.
+      const refreshed = await productAPI.get(product.slug, { include_inactive: true, refresh: Date.now() });
+      setSelectedProduct(refreshed.data);
+      const refreshedVariants = refreshed.data.variants || [];
+      const refreshedSizeIds = [...new Set(refreshedVariants.map((v) => v.size?.id).filter(Boolean))];
+      const refreshedColorIds = [...new Set(refreshedVariants.map((v) => v.color?.id).filter(Boolean))];
+      setStockForm({ ...emptyStock, size_ids: refreshedSizeIds, color_ids: refreshedColorIds });
+      setImageFile(null);
+      setInventoryTouched(false);
       toast.success('Product saved');
     } catch (error) {
       toast.error(apiErrorMessage(error));

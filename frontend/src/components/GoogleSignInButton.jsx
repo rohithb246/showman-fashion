@@ -32,7 +32,6 @@ export default function GoogleSignInButton({ onCredential, onError }) {
           callback: onCredential,
           ux_mode: 'popup',
           auto_select: false,
-          use_fedcm_for_button: true,
         });
         initialized.current = true;
       }

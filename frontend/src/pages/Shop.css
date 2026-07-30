@@ -11,7 +11,7 @@
   content: '';
   position: absolute;
   z-index: -1;
-  border: 1px solid rgba(255, 215, 0, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.36);
   transform: rotate(-14deg);
 }
 
@@ -42,7 +42,7 @@
   align-items: center;
   gap: 0.7rem;
   margin-bottom: 0.55rem;
-  color: rgba(255, 215, 0, 0.9);
+  color: #fff;
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.22em;
@@ -69,9 +69,9 @@
   min-height: 32px;
   margin-top: 0.55rem;
   padding: 0.32rem 0.9rem;
-  border: 1px solid rgba(255, 215, 0, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 999px;
-  background: rgba(12, 3, 14, 0.28);
+  background: transparent;
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -85,13 +85,11 @@
 }
 
 .shop-filters {
-  background:
-    linear-gradient(var(--white), var(--white)) padding-box,
-    linear-gradient(145deg, rgba(255, 215, 0, 0.45), rgba(74, 5, 96, 0.16)) border-box;
-  border: 1px solid transparent;
+  background: #fff;
+  border: 1px solid #e3e3e3;
   border-radius: 8px;
   padding: 1.35rem;
-  box-shadow: 0 18px 46px rgba(74, 5, 96, 0.12);
+  box-shadow: none;
   height: fit-content;
   max-height: calc(100svh - 112px);
   overflow-y: auto;
@@ -113,8 +111,8 @@
   align-items: center;
   margin: -1.35rem -1.35rem 1.25rem;
   padding: 1.15rem 1.35rem;
-  border-bottom: 1px solid rgba(255, 215, 0, 0.22);
-  background: var(--black);
+  border-bottom: 1px solid #111;
+  background: #111;
 }
 
 .filters-header h3 {
@@ -162,14 +160,15 @@
 }
 
 .filter-option:hover {
-  background: rgba(255, 215, 0, 0.09);
-  color: var(--purple);
+  background: #f4f4f4;
+  color: #111;
   transform: translateX(2px);
 }
 
 .filter-option input {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
   accent-color: var(--purple);
 }
 
@@ -177,18 +176,18 @@
 
 .chip {
   padding: 0.4rem 0.85rem;
-  border: 1px solid rgba(74, 5, 96, 0.16);
+  border: 1px solid #cfcfcf;
   border-radius: 999px;
   font-size: 0.8rem;
-  background: linear-gradient(180deg, #fff, #fbf8fc);
-  color: var(--purple);
+  background: #fff;
+  color: #111;
   transition: all 0.3s;
 }
 
 .chip.active, .chip:hover {
-  background: var(--purple);
-  color: var(--gold);
-  border-color: var(--purple);
+  background: #111;
+  color: #fff;
+  border-color: #111;
 }
 
 .color-chip::before {
@@ -231,8 +230,13 @@
 .filter-toggle { display: none; }
 
 @media (max-width: 900px) {
-  .shop-layout { grid-template-columns: 1fr; padding: 1.25rem 1rem 3rem; }
+  .shop-layout {
+    grid-template-columns: 1fr;
+    padding: 1.25rem 1rem 3rem;
+  }
+
   .filter-toggle { display: inline-flex; }
+
   .shop-filters {
     display: none;
     position: fixed;
@@ -244,8 +248,62 @@
     border-radius: 0;
     overflow-y: auto;
     max-height: none;
+    padding: 0 0 3rem;
+    /* reset sticky desktop styles */
+    position: fixed;
+    height: auto;
   }
+
   .shop-filters.open { display: block; }
+
+  .filters-header {
+    margin: 0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .filter-group {
+    padding: 0.85rem 1.25rem 1rem;
+    margin-bottom: 0;
+  }
+
+  .filter-group h4 {
+    margin-bottom: 0.6rem;
+  }
+
+  .filter-option {
+    min-height: 44px;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.6rem;
+    gap: 0.85rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .filter-option input {
+    width: 18px;
+    height: 18px;
+  }
+
+  .filter-chips {
+    gap: 0.45rem;
+  }
+
+  .chip {
+    padding: 0.5rem 1rem;
+    font-size: 0.84rem;
+    min-height: 36px;
+  }
+
+  .price-inputs {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .price-inputs span { display: none; }
+
+  .price-inputs .form-input { width: 100%; }
 }
 
 @media (max-width: 480px) {
@@ -265,6 +323,7 @@
 
   .shop-toolbar {
     align-items: stretch;
+    flex-direction: row;
     gap: 0.75rem;
   }
 
@@ -276,23 +335,4 @@
     min-width: 0;
     width: 100%;
   }
-
-  .price-inputs {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .price-inputs span {
-    display: none;
-  }
 }
-
-/* Keep browse controls monochrome at every breakpoint. */
-.shop-header::before, .shop-header::after { border-color: rgba(255, 255, 255, 0.36); }
-.shop-kicker, .shop-kicker::before, .shop-kicker::after { color: #fff; }
-.shop-header p { border-color: rgba(255, 255, 255, 0.55); background: transparent; }
-.shop-filters { background: #fff; border: 1px solid #e3e3e3; box-shadow: none; }
-.filters-header { background: #111; border-color: #111; }
-.filter-option:hover { background: #f4f4f4; color: #111; }
-.chip { border-color: #cfcfcf; background: #fff; color: #111; }
-.chip.active, .chip:hover { background: #111; color: #fff; border-color: #111; }

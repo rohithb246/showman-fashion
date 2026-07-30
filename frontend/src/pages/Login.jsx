@@ -31,7 +31,10 @@ export default function Login() {
       const data = await loginWithGoogle(credential);
       toast.success('Welcome to The Show Man!');
       navigate(data.user.role === 'admin' || data.user.role === 'staff' ? '/admin' : '/');
-    } catch (err) { toast.error(err.response?.data?.detail || 'Google sign-in failed'); }
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.message || 'Google sign-in failed. Please try again.';
+      toast.error(msg);
+    }
   }, [loginWithGoogle, navigate]);
 
   return (

@@ -7,7 +7,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import './Dashboard.css';
 
 function DashboardContent() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [tab, setTab] = useState('orders');
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
@@ -61,6 +61,7 @@ function DashboardContent() {
           </button>
         ))}
         <Link to="/wishlist" className="dash-tab">Wishlist</Link>
+        <button className="dash-tab dash-tab-logout" onClick={logout}>Logout</button>
       </aside>
 
       <div className="dashboard-main">
